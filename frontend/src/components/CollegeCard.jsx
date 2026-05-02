@@ -8,9 +8,11 @@ export default function CollegeCard({
   college,
   saved,
   compared,
+  shortlistStatus = 'saved',
   onSave,
   onCompare,
   onView,
+  onStatusChange,
 }) {
   const totalCost = getTotalCost(college)
   const loanRequired = getLoanRequired(college)
@@ -102,6 +104,19 @@ export default function CollegeCard({
           <Scale className="h-4 w-4" />
           {compared ? 'Comparing' : 'Compare'}
         </Button>
+        {saved && (
+          <select
+            value={shortlistStatus}
+            onChange={(event) => onStatusChange?.(event.target.value)}
+            className="rounded-full border border-slate-300/80 bg-white/80 px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-[#635bff]/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+          >
+            <option value="saved">Saved</option>
+            <option value="researching">Researching</option>
+            <option value="ready_to_apply">Ready to apply</option>
+            <option value="applied">Applied</option>
+            <option value="offer_received">Offer received</option>
+          </select>
+        )}
         <Button variant="ghost" size="sm" className="gap-2" onClick={downloadDetails}>
           <Download className="h-4 w-4" />
           Details

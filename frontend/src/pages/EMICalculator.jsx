@@ -1,12 +1,33 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Calendar, DollarSign, TrendingDown } from 'lucide-react'
+import { ArrowUpRight, Calendar, DollarSign, TrendingDown } from 'lucide-react'
 import { Badge, Button, Card, PageHeader, StatCard } from '../components'
+import { financialService } from '../services/api'
 import { calculateEarlyPaymentBenefit, calculateEMI, formatCurrency, formatNumber, generateAmortizationSchedule } from '../utils/financial'
+
+const repaymentTips = [
+  {
+    title: 'Use one planned extra payment each year',
+    description: 'If your budget allows, one additional payment in a year can reduce the balance earlier and ease the long-term interest burden.',
+  },
+  {
+    title: 'Prioritize early prepayment when possible',
+    description: 'Extra payments made in the earlier months usually have a bigger effect because that is when the interest share is highest.',
+  },
+  {
+    title: 'Check whether a shorter tenure fits your income',
+    description: 'A slightly higher monthly commitment can sometimes save a large amount overall if it reduces the number of repayment years.',
+  },
+  {
+    title: 'Watch the interest-principal split',
+    description: 'Understanding how much of each EMI goes to interest helps you decide when prepayment will be most effective.',
+  },
+]
 
 export default function EMICalculator() {
   const [formData, setFormData] = useState({ principal: 5000000, rate: 9.5, tenure: 120, extraPayment: 0 })
   const [showSchedule, setShowSchedule] = useState(false)
+  const [bankPlans, setBankPlans] = useState([])
   const handleChange = (e) => setFormData((prev) => ({ ...prev, [e.target.name]: parseFloat(e.target.value) || 0 }))
 
   const emi = calculateEMI(formData.principal, formData.rate, formData.tenure)
@@ -16,6 +37,18 @@ export default function EMICalculator() {
   const schedule = useMemo(() => generateAmortizationSchedule(formData.principal, formData.rate, formData.tenure), [formData.principal, formData.rate, formData.tenure])
   const chartData = useMemo(() => schedule.slice(0, Math.min(60, schedule.length)), [schedule])
   const splitData = [{ name: 'Principal', value: formData.principal, fill: '#0ea5e9' }, { name: 'Interest', value: totalInterest, fill: '#f97316' }]
+
+  useEffect(() => {
+    financialService.getBankPlans({
+      requiredAmountLakhs: Math.round(formData.principal / 100000),
+      prefersLowInterest: true,
+      needsLongMoratorium: true,
+      prefersNoMargin: false,
+      prefersUnsecured: formData.principal <= 4000000,
+    })
+      .then(({ data }) => setBankPlans(data.plans || []))
+      .catch(() => setBankPlans([]))
+  }, [formData.principal])
 
   return (
     <div className="min-h-screen py-8 pb-20">
@@ -53,12 +86,75 @@ export default function EMICalculator() {
           </div>
         </Card>
 
+        <Card hover={false} className="mb-8">
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold">Banks and loan plans</h2>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Ranked loan options for your current funding need with tenure, moratorium, and pricing context.</p>
+            </div>
+            <Badge variant="success">{bankPlans.length} plans</Badge>
+          </div>
+          <div className="grid gap-4 xl:grid-cols-2">
+            {bankPlans.map((plan) => (
+              <div key={plan.id} className="rounded-2xl border border-slate-200/70 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-lg font-semibold">{plan.bank}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{plan.planName} - {plan.providerType}</p>
+                  </div>
+                  <Badge>{plan.recommendationScore} score</Badge>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                  <PlanMetric label="Interest" value={`${plan.interestRate}%`} />
+                  <PlanMetric label="Max amount" value={`Rs ${plan.maxAmountLakhs}L`} />
+                  <PlanMetric label="Moratorium" value={`${plan.moratoriumMonths} mo`} />
+                  <PlanMetric label="Tenure" value={`${Math.round(plan.tenureMonths / 12)} yrs`} />
+                </div>
+                <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                  <p className="font-semibold text-slate-900 dark:text-white">Highlights</p>
+                  <ul className="mt-2 space-y-1">
+                    {plan.highlights.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
+                <a href={plan.officialLink} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#635bff]">
+                  Visit official plan <ArrowUpRight className="h-4 w-4" />
+                </a>
+              </div>
+            ))}
+          </div>
+        </Card>
+
         <div className="mb-8 grid gap-6 md:grid-cols-4">
           <StatCard label="Monthly EMI" value={emi} unit="Rs" icon={DollarSign} />
           <StatCard label="Total Interest" value={totalInterest} unit="Rs" icon={TrendingDown} trend="over tenure" />
           <StatCard label="Total Payment" value={totalPayment} unit="Rs" icon={Calendar} />
           <StatCard label="Loan Duration" value={formData.tenure} unit="months" icon={Calendar} trend={`${(formData.tenure / 12).toFixed(1)} years`} />
         </div>
+
+        <section className="mb-8 overflow-hidden rounded-[2rem] bg-[#0f2134] text-white shadow-[0_25px_70px_rgba(15,33,52,0.22)]">
+          <div className="border-t-4 border-teal-500 px-6 py-8 sm:px-8">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-teal-300">Stage 06</p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white">Smart Repayment Strategy</h2>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                Practical repayment tips for students who want to reduce stress, save interest, and choose a healthier loan path.
+              </p>
+            </div>
+
+            <div className="mt-8 grid gap-5 md:grid-cols-2">
+              {repaymentTips.map((tip) => (
+                <div key={tip.title} className="border-l-4 border-amber-300 bg-[#1f4162] px-5 py-6 shadow-[0_12px_30px_rgba(0,0,0,0.14)]">
+                  <h3 className="text-xl font-semibold tracking-tight text-amber-300">{tip.title}</h3>
+                  <p className="mt-4 text-sm leading-7 text-slate-100">{tip.description}</p>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-7 text-sm font-semibold text-slate-100">
+              Use the simulator below to test EMI changes, extra payments, and payoff timelines before locking your repayment plan.
+            </p>
+          </div>
+        </section>
 
         <div className="mb-8 grid gap-8 lg:grid-cols-2">
           <Card hover={false}>
@@ -142,6 +238,15 @@ export default function EMICalculator() {
           )}
         </Card>
       </div>
+    </div>
+  )
+}
+
+function PlanMetric({ label, value }) {
+  return (
+    <div className="rounded-2xl border border-slate-200/70 bg-white/70 p-3 dark:border-slate-800 dark:bg-slate-950/30">
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="mt-1 font-semibold">{value}</p>
     </div>
   )
 }

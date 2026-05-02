@@ -10,7 +10,14 @@ import {
   updateStudentProfile,
   getUserDocuments,
   upsertUserDocument,
+  getUserShortlist,
+  upsertShortlistItem,
+  removeShortlistItem,
+  getUserAlerts,
+  replaceUserAlerts,
+  markAlertRead,
 } from '../utils/mockDb.js'
+import { buildPersistentAlerts } from '../utils/workspace.js'
 
 const router = express.Router()
 
@@ -57,6 +64,47 @@ router.post('/documents', verifyToken, (req, res) => {
 router.get('/documents', verifyToken, (req, res) => {
   const documents = getUserDocuments(req.user.id)
   res.json({ documents })
+})
+
+router.get('/shortlist', verifyToken, (req, res) => {
+  const shortlist = getUserShortlist(req.user.id)
+  res.json({ shortlist })
+})
+
+router.post('/shortlist', verifyToken, (req, res) => {
+  const item = upsertShortlistItem(req.user.id, req.body)
+  res.json({ item })
+})
+
+router.put('/shortlist/:collegeId', verifyToken, (req, res) => {
+  const item = upsertShortlistItem(req.user.id, {
+    ...req.body,
+    collegeId: req.params.collegeId,
+  })
+  res.json({ item })
+})
+
+router.delete('/shortlist/:collegeId', verifyToken, (req, res) => {
+  const shortlist = removeShortlistItem(req.user.id, req.params.collegeId)
+  res.json({ shortlist })
+})
+
+router.post('/alerts/sync', verifyToken, (req, res) => {
+  const profile = getStudentProfile(req.user.id)
+  const documents = getUserDocuments(req.user.id)
+  const shortlist = getUserShortlist(req.user.id)
+  const alerts = replaceUserAlerts(req.user.id, buildPersistentAlerts(profile, documents, shortlist))
+  res.json({ alerts })
+})
+
+router.get('/alerts', verifyToken, (req, res) => {
+  const alerts = getUserAlerts(req.user.id)
+  res.json({ alerts })
+})
+
+router.patch('/alerts/:alertId', verifyToken, (req, res) => {
+  const alert = markAlertRead(req.user.id, req.params.alertId, req.body?.isRead !== false)
+  res.json({ alert })
 })
 
 router.get('/loans', verifyToken, (req, res) => {

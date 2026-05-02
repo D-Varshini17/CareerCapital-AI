@@ -138,6 +138,7 @@ export default function ProfileEnhancer() {
     setSaving(true)
     try {
       await userService.updateProfileCenter(nextProfile)
+      await userService.syncAlerts().catch(() => {})
     } finally {
       setSaving(false)
     }
@@ -157,6 +158,7 @@ export default function ProfileEnhancer() {
     setDocuments((prev) => prev.map((doc) => (doc.doc_type === docType ? { ...doc, ...nextDocument } : doc)))
     try {
       await userService.saveDocument(nextDocument)
+      await userService.syncAlerts().catch(() => {})
     } catch {
       // Keep local UI state if mock backend is unavailable.
     }

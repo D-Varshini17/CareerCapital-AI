@@ -6,6 +6,8 @@ const loans = new Map()
 const careerProfiles = new Map()
 const studentProfiles = new Map()
 const userDocuments = new Map()
+const userShortlists = new Map()
+const userAlerts = new Map()
 
 let userIdCounter = 1
 let loanIdCounter = 1
@@ -107,12 +109,76 @@ export const upsertUserDocument = (userId, document) => {
   return updated
 }
 
+export const getUserShortlist = (userId) => {
+  return userShortlists.get(userId.toString()) || []
+}
+
+export const upsertShortlistItem = (userId, item) => {
+  const existing = userShortlists.get(userId.toString()) || []
+  const next = [...existing]
+  const index = next.findIndex((entry) => entry.collegeId === item.collegeId)
+  const updated = {
+    ...next[index],
+    ...item,
+    userId,
+    updatedAt: new Date(),
+    createdAt: next[index]?.createdAt || new Date(),
+  }
+
+  if (index >= 0) {
+    next[index] = updated
+  } else {
+    next.push(updated)
+  }
+  userShortlists.set(userId.toString(), next)
+  return updated
+}
+
+export const removeShortlistItem = (userId, collegeId) => {
+  const existing = userShortlists.get(userId.toString()) || []
+  const next = existing.filter((entry) => entry.collegeId !== collegeId)
+  userShortlists.set(userId.toString(), next)
+  return next
+}
+
+export const getUserAlerts = (userId) => {
+  return userAlerts.get(userId.toString()) || []
+}
+
+export const replaceUserAlerts = (userId, alerts) => {
+  const existing = userAlerts.get(userId.toString()) || []
+  const existingMap = new Map(existing.map((alert) => [alert.id, alert]))
+  const next = alerts.map((alert) => ({
+    ...existingMap.get(alert.id),
+    ...alert,
+    userId,
+    isRead: existingMap.get(alert.id)?.isRead || false,
+    createdAt: existingMap.get(alert.id)?.createdAt || new Date(),
+    updatedAt: new Date(),
+  }))
+  userAlerts.set(userId.toString(), next)
+  return next
+}
+
+export const markAlertRead = (userId, alertId, isRead = true) => {
+  const existing = userAlerts.get(userId.toString()) || []
+  const next = existing.map((alert) =>
+    alert.id === alertId
+      ? { ...alert, isRead, updatedAt: new Date() }
+      : alert
+  )
+  userAlerts.set(userId.toString(), next)
+  return next.find((alert) => alert.id === alertId) || null
+}
+
 export const resetMockData = () => {
   users.clear()
   loans.clear()
   careerProfiles.clear()
   studentProfiles.clear()
   userDocuments.clear()
+  userShortlists.clear()
+  userAlerts.clear()
   userIdCounter = 1
   loanIdCounter = 1
 }

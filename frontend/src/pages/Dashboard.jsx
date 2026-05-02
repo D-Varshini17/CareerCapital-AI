@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   AlertTriangle,
@@ -20,23 +20,30 @@ import { colleges } from '../data/colleges'
 import { userService } from '../services/api'
 import { useAuthStore, useCollegeStore } from '../store'
 import { filterAndRankColleges, getTotalCost } from '../utils/collegeSearch'
+import { buildWorkspaceAlerts, getAcademicStrength, getCurrentStage, getDocumentStrength, getProfileStrength, getScoreStrength, getSmartSuggestion } from '../utils/workspace'
 
 export default function Dashboard() {
+  const location = useLocation()
   const user = useAuthStore((state) => state.user)
-  const { savedCollegeIds, recentlyViewedIds } = useCollegeStore()
+  const { recentlyViewedIds } = useCollegeStore()
   const [dashboardSearch, setDashboardSearch] = useState('')
   const [profileCenter, setProfileCenter] = useState({ profile: null, documents: [] })
+  const [shortlist, setShortlist] = useState([])
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
       try {
-        const { data } = await userService.getProfileCenter()
+        const [{ data }, shortlistResponse] = await Promise.all([
+          userService.getProfileCenter(),
+          userService.getShortlist().catch(() => ({ data: { shortlist: [] } })),
+        ])
         if (mounted) {
           setProfileCenter({
             profile: data.profile,
             documents: data.documents || [],
           })
+          setShortlist(shortlistResponse.data.shortlist || [])
         }
       } catch {
         // Keep fallback dashboard state when backend profile data is not ready yet.
@@ -52,6 +59,7 @@ export default function Dashboard() {
   const missingDocs = profileCenter.documents.filter((doc) => doc.status === 'missing').length
   const loanEstimate = 47869
   const financialStress = Math.max(18, 100 - profileStrength + missingDocs * 4)
+  const currentStage = getCurrentStage(location.pathname)
 
   const quickActions = [
     { icon: Search, title: 'College Finder', description: 'Search colleges, courses, and countries', href: '/college-finder' },
@@ -92,8 +100,13 @@ export default function Dashboard() {
         scholarship: 'Any',
       }).slice(0, 3)
 
-  const saved = colleges.filter((college) => savedCollegeIds.includes(college.id)).slice(0, 3)
+  const saved = shortlist
+    .map((item) => ({ ...colleges.find((college) => college.id === item.collegeId), applicationStatus: item.applicationStatus }))
+    .filter((item) => item?.id)
+    .slice(0, 3)
   const recent = recentlyViewedIds.map((id) => colleges.find((college) => college.id === id)).filter(Boolean).slice(0, 3)
+  const workspaceAlerts = buildWorkspaceAlerts(profileCenter.profile, profileCenter.documents, saved)
+  const smartSuggestion = getSmartSuggestion(profileCenter.profile, profileCenter.documents, location.pathname)
 
   return (
     <div className="min-h-screen soft-grid py-10 pb-24">
@@ -136,6 +149,30 @@ export default function Dashboard() {
           <StatCard label="Stress Score" value={financialStress} unit="/100" icon={TrendingUp} trend={financialStress < 45 ? 'Manageable profile' : 'Needs planning'} trendUp={financialStress < 45} />
         </div>
 
+        <div className="mb-8 grid gap-6 lg:grid-cols-3">
+          <Card hover={false}>
+            <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Current Stage Indicator</p>
+            <p className="mt-3 text-2xl font-semibold tracking-tight text-[#0a2540] dark:text-white">
+              Stage {currentStage.number} - {currentStage.label}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{currentStage.detail}</p>
+          </Card>
+          <Card hover={false}>
+            <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Profile Completion Bar</p>
+            <div className="mt-3">
+              <ProgressBar value={profileStrength} max={100} animated={false} />
+            </div>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{missingDocs} item{missingDocs === 1 ? '' : 's'} still blocking a stronger recommendation model.</p>
+          </Card>
+          <Card hover={false}>
+            <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Smart Suggestion Card</p>
+            <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">{smartSuggestion}</p>
+            <Link to="/ai-engine" className="mt-4 inline-flex">
+              <Button variant="outline" size="sm">Open AI engine</Button>
+            </Link>
+          </Card>
+        </div>
+
         <div className="mb-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <Card hover={false}>
             <div className="mb-4 flex items-center justify-between gap-4">
@@ -164,10 +201,13 @@ export default function Dashboard() {
           <Card hover={false}>
             <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#0a2540] dark:text-white">Smart alerts</h2>
             <div className="space-y-3">
-              {buildDashboardAlerts(profileCenter.profile, profileCenter.documents).map((alert) => (
-                <div key={alert} className="flex items-start gap-3 rounded-2xl border border-slate-200/70 bg-white/60 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+              {workspaceAlerts.slice(0, 4).map((alert) => (
+                <div key={alert.id} className="flex items-start gap-3 rounded-2xl border border-slate-200/70 bg-white/60 p-4 dark:border-slate-800 dark:bg-slate-950/40">
                   <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />
-                  <p className="text-sm text-slate-600 dark:text-slate-300">{alert}</p>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{alert.title}</p>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{alert.detail}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -256,6 +296,23 @@ export default function Dashboard() {
               </div>
             </Card>
 
+            <Card hover={false}>
+              <h2 className="mb-4 text-xl font-bold">Application tracker</h2>
+              <div className="space-y-3">
+                {shortlist.length ? shortlist.slice(0, 4).map((item) => (
+                  <div key={item.collegeId} className="rounded-2xl bg-white/60 p-3 ring-1 ring-slate-200/70 dark:bg-slate-950/40 dark:ring-slate-800">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{item.university}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{item.course}</p>
+                    <div className="mt-2 inline-flex rounded-full bg-[#635bff]/10 px-2.5 py-1 text-[11px] font-semibold text-[#635bff]">
+                      {String(item.applicationStatus || 'saved').replaceAll('_', ' ')}
+                    </div>
+                  </div>
+                )) : (
+                  <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-slate-900">Save colleges from the finder to start managing application status.</p>
+                )}
+              </div>
+            </Card>
+
             <Card hover={false} className="border-[#635bff]/20 bg-[#635bff]/[0.06] dark:border-[#635bff]/30 dark:bg-[#635bff]/10">
               <h2 className="mb-3 flex items-center gap-2 text-xl font-bold"><ShieldCheck className="h-5 w-5 text-[#635bff]" /> AI insight</h2>
               <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">
@@ -300,7 +357,11 @@ function DashboardCollegeSection({ title, items, empty }) {
                   <p className="truncate text-xs text-slate-500">{college.course}</p>
                   <div className="mt-2 flex items-center justify-between text-xs">
                     <span>Rs {getTotalCost(college)}L total</span>
-                    <span className="font-semibold text-emerald-600">{college.admissionProbability}% fit</span>
+                    <span className="font-semibold text-emerald-600">
+                      {college.applicationStatus
+                        ? college.applicationStatus.replaceAll('_', ' ')
+                        : `${college.admissionProbability}% fit`}
+                    </span>
                   </div>
                 </div>
                 <ArrowRight className="h-4 w-4 text-slate-400" />
@@ -333,37 +394,4 @@ function FinancialMetric({ label, value, subtitle }) {
       <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
     </div>
   )
-}
-
-function getAcademicStrength(profile) {
-  if (!profile) return 40
-  const fields = ['qualification', 'gpa', 'major']
-  return Math.round((fields.filter((field) => String(profile.academics?.[field] || '').trim()).length / fields.length) * 100)
-}
-
-function getDocumentStrength(documents) {
-  if (!documents.length) return 34
-  return Math.round((documents.reduce((sum, doc) => sum + (doc.status === 'uploaded' ? 1 : doc.status === 'needs_improvement' ? 0.6 : 0), 0) / documents.length) * 100)
-}
-
-function getScoreStrength(profile) {
-  if (!profile) return 24
-  const fields = ['ielts', 'toefl', 'gre', 'gmat', 'others']
-  return Math.min(100, Math.round((fields.filter((field) => String(profile.test_scores?.[field] || '').trim()).length / 2) * 100))
-}
-
-function getProfileStrength(profile, documents) {
-  const academics = getAcademicStrength(profile)
-  const docs = getDocumentStrength(documents)
-  const scores = getScoreStrength(profile)
-  return Math.round(academics * 0.35 + docs * 0.4 + scores * 0.25)
-}
-
-function buildDashboardAlerts(profile, documents) {
-  const alerts = []
-  if (!profile) alerts.push('Start the guided profile builder to personalize colleges and financial estimates.')
-  if (documents.some((doc) => doc.doc_type === 'Statement of Purpose' && doc.status !== 'uploaded')) alerts.push('Upload or improve your SOP to sharpen admission recommendations.')
-  if (!String(profile?.test_scores?.gre || '').trim()) alerts.push('You can improve admission chances by adding GRE for selective programs.')
-  if (documents.filter((doc) => doc.status === 'missing').length > 0) alerts.push('Complete missing documents to improve loan and visa readiness analysis.')
-  return alerts.slice(0, 4)
 }

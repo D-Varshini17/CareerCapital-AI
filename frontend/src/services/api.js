@@ -35,6 +35,14 @@ export const userService = {
   updateProfileCenter: (data) => api.put('/users/profile-center', data),
   getDocuments: () => api.get('/users/documents'),
   saveDocument: (data) => api.post('/users/documents', data),
+  getLoans: () => api.get('/users/loans'),
+  getShortlist: () => api.get('/users/shortlist'),
+  saveShortlistItem: (data) => api.post('/users/shortlist', data),
+  updateShortlistItem: (collegeId, data) => api.put(`/users/shortlist/${collegeId}`, data),
+  removeShortlistItem: (collegeId) => api.delete(`/users/shortlist/${collegeId}`),
+  syncAlerts: () => api.post('/users/alerts/sync'),
+  getAlerts: () => api.get('/users/alerts'),
+  markAlertRead: (alertId, isRead = true) => api.patch(`/users/alerts/${alertId}`, { isRead }),
 }
 
 // Financial services
@@ -43,6 +51,7 @@ export const financialService = {
     api.post('/financial/calculate-emi', { principal, rate, tenure }),
   getLoanData: (userId) => api.get(`/financial/loans/${userId}`),
   createLoan: (loanData) => api.post('/financial/loans', loanData),
+  getBankPlans: (params = {}) => api.get('/financial/bank-plans', { params }),
 }
 
 // AI services (mocked or real OpenAI)

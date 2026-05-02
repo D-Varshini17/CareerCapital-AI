@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { MessageCircle, Minimize2, Send, X } from 'lucide-react'
+import { aiService } from '../services/api'
 
 export default function ChatBot() {
   const [isOpen, setIsOpen] = useState(false)
@@ -15,16 +16,14 @@ export default function ChatBot() {
     setMessages([...messages, userMessage])
     setInput('')
     setLoading(true)
-    setTimeout(() => {
-      const replies = [
-        'Start with Career Discovery to compare roles, countries, and program fit.',
-        'The EMI calculator can show repayment scenarios and interest savings.',
-        'For visa readiness, focus on funding proof, SOP clarity, and recommendation quality.',
-        'Profile gaps are easier to fix when you prioritize them by application deadline.',
-      ]
-      setMessages((prev) => [...prev, { id: prev.length + 1, type: 'bot', text: replies[Math.floor(Math.random() * replies.length)] }])
+    try {
+      const { data } = await aiService.getChatResponse(input, {})
+      setMessages((prev) => [...prev, { id: prev.length + 1, type: 'bot', text: data.result?.text || 'Use the dashboard and AI Engine together for a stronger answer.' }])
+    } catch {
+      setMessages((prev) => [...prev, { id: prev.length + 1, type: 'bot', text: 'I could not reach the decision engine just now. Try again in a moment.' }])
+    } finally {
       setLoading(false)
-    }, 700)
+    }
   }
 
   return (

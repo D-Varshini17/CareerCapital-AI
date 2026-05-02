@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { SlidersHorizontal, Sparkles } from 'lucide-react'
 import { Badge, Button, PageHeader } from '../components'
@@ -7,27 +7,72 @@ import ComparisonPanel from '../components/ComparisonPanel'
 import SmartSearchBar from '../components/SmartSearchBar'
 import { colleges, filterOptions } from '../data/colleges'
 import { useCollegeStore } from '../store'
+import { userService } from '../services/api'
 import { defaultCollegeFilters, filterAndRankColleges, getSmartIntent } from '../utils/collegeSearch'
 
 export default function CollegeFinder() {
   const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get('q') || '')
   const [filters, setFilters] = useState(defaultCollegeFilters)
   const [showFilters, setShowFilters] = useState(true)
+  const [shortlist, setShortlist] = useState([])
   const {
-    savedCollegeIds,
     compareCollegeIds,
-    toggleSavedCollege,
     toggleCompareCollege,
     clearCompare,
     addRecentlyViewed,
   } = useCollegeStore()
 
+  useEffect(() => {
+    let mounted = true
+    userService.getShortlist()
+      .then(({ data }) => {
+        if (mounted) setShortlist(data.shortlist || [])
+      })
+      .catch(() => {})
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   const results = useMemo(() => filterAndRankColleges(colleges, query, filters), [query, filters])
   const compareColleges = colleges.filter((college) => compareCollegeIds.includes(college.id))
   const intent = getSmartIntent(query)
+  const shortlistMap = useMemo(() => new Map(shortlist.map((item) => [item.collegeId, item])), [shortlist])
 
   const setFilter = (name, value) => setFilters((prev) => ({ ...prev, [name]: value }))
   const resetFilters = () => setFilters(defaultCollegeFilters)
+
+  const toggleShortlist = async (college) => {
+    const existing = shortlistMap.get(college.id)
+    if (existing) {
+      await userService.removeShortlistItem(college.id).catch(() => {})
+      await userService.syncAlerts().catch(() => {})
+      setShortlist((prev) => prev.filter((item) => item.collegeId !== college.id))
+      return
+    }
+
+    const payload = {
+      collegeId: college.id,
+      university: college.university,
+      course: college.course,
+      country: college.country,
+      applicationStatus: 'saved',
+      officialLink: college.officialLink,
+      applyLink: college.applyLink,
+    }
+    const { data } = await userService.saveShortlistItem(payload).catch(() => ({ data: { item: payload } }))
+    await userService.syncAlerts().catch(() => {})
+    setShortlist((prev) => [...prev.filter((item) => item.collegeId !== college.id), data.item])
+  }
+
+  const updateShortlistStatus = async (college, applicationStatus) => {
+    const current = shortlistMap.get(college.id)
+    if (!current) return
+    const payload = { ...current, applicationStatus }
+    const { data } = await userService.updateShortlistItem(college.id, payload).catch(() => ({ data: { item: payload } }))
+    await userService.syncAlerts().catch(() => {})
+    setShortlist((prev) => prev.map((item) => (item.collegeId === college.id ? data.item : item)))
+  }
 
   return (
     <div className="min-h-screen soft-grid py-10 pb-36">
@@ -100,11 +145,13 @@ export default function CollegeFinder() {
                 <motion.div key={college.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.03 }}>
                   <CollegeCard
                     college={college}
-                    saved={savedCollegeIds.includes(college.id)}
+                    saved={shortlistMap.has(college.id)}
                     compared={compareCollegeIds.includes(college.id)}
-                    onSave={() => toggleSavedCollege(college.id)}
+                    shortlistStatus={shortlistMap.get(college.id)?.applicationStatus || 'saved'}
+                    onSave={() => toggleShortlist(college)}
                     onCompare={() => toggleCompareCollege(college.id)}
                     onView={() => addRecentlyViewed(college.id)}
+                    onStatusChange={(status) => updateShortlistStatus(college, status)}
                   />
                 </motion.div>
               ))}

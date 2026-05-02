@@ -174,7 +174,7 @@ export default function LandingPage() {
                 <h2 className="max-w-2xl text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">Make the numbers visible before the decision gets expensive.</h2>
                 <p className="mt-5 max-w-2xl leading-7 text-slate-300">Start with the EMI simulator, then connect career ROI, visa readiness, profile progress, and living costs into one plan.</p>
               </div>
-              <Link to="/signup"><Button size="lg" className="w-full gap-2 bg-white text-[#0a2540] hover:bg-slate-100 sm:w-auto">Create free account <ArrowRight className="h-5 w-5" /></Button></Link>
+              <Link to="/signup"><Button size="lg" className="w-full gap-2 !bg-white !text-[#0a2540] hover:!bg-slate-100 sm:w-auto">Create free account <ArrowRight className="h-5 w-5" /></Button></Link>
             </div>
           </div>
         </div>
