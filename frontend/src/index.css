@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply transition-colors duration-200;
+}
+
+body {
+  @apply bg-slate-50 text-slate-950 antialiased dark:bg-slate-950 dark:text-slate-50;
+}
+
+/* Glassmorphism effect */
+.glass {
+  @apply bg-white border border-slate-200 shadow-sm shadow-slate-200/60;
+}
+
+.glass-dark {
+  @apply bg-slate-900 border border-slate-800 shadow-sm shadow-black/20;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  @apply w-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-100 dark:bg-slate-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-400 dark:bg-slate-600 rounded-full hover:bg-slate-500 dark:hover:bg-slate-500;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-gradient-to-r from-sky-600 via-teal-500 to-indigo-600 bg-clip-text text-transparent;
+}
+
+.page-shell {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.section-kicker {
+  @apply text-sm font-semibold uppercase tracking-[0.18em] text-sky-700 dark:text-sky-300;
+}
+
+/* Button reset */
+button {
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900;
+}
+
+/* Form input focus */
+input:focus,
+textarea:focus,
+select:focus {
+  @apply outline-none ring-2 ring-sky-500 ring-opacity-50;
+}

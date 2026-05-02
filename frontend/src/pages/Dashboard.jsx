@@ -1,0 +1,175 @@
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { Calendar, DollarSign, LineChart, Target, TrendingUp, Zap } from 'lucide-react'
+import { Badge, Button, Card, ProgressBar, StatCard } from '../components'
+import { useAuthStore } from '../store'
+
+export default function Dashboard() {
+  const user = useAuthStore((state) => state.user)
+
+  const dashboardData = {
+    career: {
+      target: 'Software engineer - US/Canada',
+      progress: 65,
+      nextAction: 'Complete skill assessment',
+    },
+    loan: {
+      total: 4500000,
+      available: 1200000,
+      interest_rate: 9.5,
+      tenure_months: 120,
+      emi: 47869,
+    },
+    financial: {
+      savings: 250000,
+      monthly_expense: 35000,
+      roi_score: 8.2,
+    },
+  }
+
+  const quickActions = [
+    { icon: Zap, title: 'EMI Calculator', description: 'Optimize your loan repayment', href: '/emi-calculator' },
+    { icon: Target, title: 'Career Discovery', description: 'Explore role and country fit', href: '/career-discovery' },
+    { icon: LineChart, title: 'Profile Enhancer', description: 'Prioritize high-impact gaps', href: '/profile-enhancer' },
+    { icon: Calendar, title: 'Progress Tracker', description: 'Review your journey stages', href: '/progress' },
+  ]
+
+  const recentActivities = [
+    { label: 'Profile', action: 'Updated career profile', time: '2 hours ago' },
+    { label: 'EMI', action: 'Calculated repayment strategy', time: '1 day ago' },
+    { label: 'Skills', action: 'Completed skill assessment', time: '3 days ago' },
+  ]
+
+  const utilized = dashboardData.loan.total - dashboardData.loan.available
+
+  return (
+    <div className="min-h-screen py-8 pb-20">
+      <div className="page-shell">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+            <div>
+              <Badge className="mb-4">Student command center</Badge>
+              <h1 className="text-4xl font-bold tracking-tight">Welcome back, {user?.name || 'Student'}</h1>
+              <p className="mt-2 text-slate-600 dark:text-slate-300">
+                Your career, funding, and readiness overview for the next application milestone.
+              </p>
+            </div>
+            <Link to="/emi-calculator">
+              <Button className="gap-2">
+                Optimize repayment <Zap className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+
+        <div className="mb-8 grid gap-6 md:grid-cols-4">
+          <StatCard label="Career Progress" value={dashboardData.career.progress} unit="%" icon={Target} trend="+5% this month" />
+          <StatCard label="Total Loan" value={(dashboardData.loan.total / 100000).toFixed(1)} unit="L" icon={DollarSign} trend="9.5% interest" trendUp={false} />
+          <StatCard label="Monthly EMI" value={dashboardData.loan.emi} unit="Rs" icon={Calendar} trend="120 months tenure" />
+          <StatCard label="ROI Score" value={dashboardData.financial.roi_score} unit="/10" icon={TrendingUp} trend="Good financial health" />
+        </div>
+
+        <div className="mb-8 grid gap-8 lg:grid-cols-3">
+          <div className="space-y-8 lg:col-span-2">
+            <Card hover={false}>
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold">Career recommendation</h2>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Based on your current profile and budget</p>
+                </div>
+                <Badge variant="success">On track</Badge>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-[1fr_0.8fr]">
+                <div className="rounded-lg bg-slate-50 p-5 dark:bg-slate-900">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Target career</p>
+                  <p className="mt-2 text-xl font-bold">{dashboardData.career.target}</p>
+                  <div className="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm font-medium text-sky-900 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-200">
+                    Next action: {dashboardData.career.nextAction}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-slate-200 p-5 dark:border-slate-800">
+                  <ProgressBar label="Development progress" value={dashboardData.career.progress} max={100} animated={false} />
+                  <Link to="/career-discovery" className="mt-6 block">
+                    <Button variant="outline" className="w-full">Update profile</Button>
+                  </Link>
+                </div>
+              </div>
+            </Card>
+
+            <Card hover={false}>
+              <h2 className="mb-6 text-2xl font-bold">Loan intelligence</h2>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Loan amount</p>
+                  <p className="mt-1 text-xl font-bold">Rs {(dashboardData.loan.total / 100000).toFixed(1)}L</p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Interest rate</p>
+                  <p className="mt-1 text-xl font-bold">{dashboardData.loan.interest_rate}%</p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Savings available</p>
+                  <p className="mt-1 text-xl font-bold">Rs {(dashboardData.financial.savings / 100000).toFixed(1)}L</p>
+                </div>
+              </div>
+              <ProgressBar className="mt-6" label="Loan utilization" value={utilized} max={dashboardData.loan.total} animated={false} />
+            </Card>
+          </div>
+
+          <div className="space-y-8">
+            <Card hover={false}>
+              <h2 className="mb-4 text-xl font-bold">Quick actions</h2>
+              <div className="space-y-3">
+                {quickActions.map((action) => {
+                  const Icon = action.icon
+                  return (
+                    <Link key={action.title} to={action.href} className="block">
+                      <div className="group flex items-start gap-3 rounded-lg border border-slate-200 p-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900">
+                        <div className="rounded-lg bg-slate-100 p-2 dark:bg-slate-800">
+                          <Icon className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold group-hover:text-sky-600">{action.title}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{action.description}</p>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            </Card>
+
+            <Card hover={false}>
+              <h2 className="mb-4 text-xl font-bold">Recent activity</h2>
+              <div className="space-y-3">
+                {recentActivities.map((activity) => (
+                  <div key={activity.action} className="flex items-start gap-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-900">
+                    <span className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700">
+                      {activity.label}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium">{activity.action}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{activity.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card hover={false} className="border-sky-200 bg-sky-50 dark:border-sky-900 dark:bg-sky-950/30">
+              <h2 className="mb-3 text-xl font-bold">AI insight</h2>
+              <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">
+                Based on your profile, extra payments could save up to Rs 5L in interest and reduce your loan timeline from 120 months to about 96 months.
+              </p>
+              <Link to="/emi-calculator" className="mt-4 block">
+                <Button size="sm" className="w-full">See optimization</Button>
+              </Link>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
