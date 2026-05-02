@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight, BarChart3, Brain, Calculator, Lock, Mail } from 'lucide-react'
 import { Button, InputField } from '../components'
 import { useAuthStore } from '../store'
+import { authService } from '../services/api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -17,18 +18,22 @@ export default function LoginPage() {
     setError('')
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    setTimeout(() => {
-      if (formData.email && formData.password) {
-        login({ id: '1', name: formData.email.split('@')[0], email: formData.email }, 'mock-jwt-token-' + Date.now())
-        navigate('/dashboard')
-      } else {
-        setError('Please fill in all fields')
-        setLoading(false)
-      }
-    }, 700)
+    if (!formData.email || !formData.password) {
+      setError('Please fill in all fields')
+      setLoading(false)
+      return
+    }
+    try {
+      const { data } = await authService.login(formData.email, formData.password)
+      login(data.user, data.token)
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.response?.data?.error || 'Unable to sign in')
+      setLoading(false)
+    }
   }
 
   const benefits = [

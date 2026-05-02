@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight, CheckCircle, Lock, Mail, User } from 'lucide-react'
 import { Button, InputField, ProgressBar } from '../components'
 import { useAuthStore } from '../store'
+import { authService } from '../services/api'
 import { isStrongPassword, isValidEmail } from '../utils/auth'
 
 export default function SignupPage() {
@@ -41,15 +42,21 @@ export default function SignupPage() {
     else setStep(2)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const next = validateStep2()
     if (Object.keys(next).length) return setErrors(next)
     setLoading(true)
-    setTimeout(() => {
-      login({ id: '1', name: formData.name, email: formData.email }, 'mock-jwt-token-' + Date.now())
+    try {
+      const { data } = await authService.signup(formData.email, formData.password, formData.name)
+      login(data.user, data.token)
       navigate('/dashboard')
-    }, 700)
+    } catch (err) {
+      setErrors({
+        email: err.response?.data?.error || 'Unable to create account',
+      })
+      setLoading(false)
+    }
   }
 
   return (

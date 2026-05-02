@@ -31,6 +31,10 @@ export const userService = {
   updateProfile: (data) => api.put('/users/profile', data),
   getCareerProfile: () => api.get('/users/career-profile'),
   updateCareerProfile: (data) => api.put('/users/career-profile', data),
+  getProfileCenter: () => api.get('/users/profile-center'),
+  updateProfileCenter: (data) => api.put('/users/profile-center', data),
+  getDocuments: () => api.get('/users/documents'),
+  saveDocument: (data) => api.post('/users/documents', data),
 }
 
 // Financial services

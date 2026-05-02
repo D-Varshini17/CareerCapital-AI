@@ -1,6 +1,16 @@
 import express from 'express'
 import { verifyToken } from '../middleware/auth.js'
-import { findUserById, updateCareerProfile, getCareerProfile, createLoan, getLoansByUserId } from '../utils/mockDb.js'
+import {
+  findUserById,
+  updateCareerProfile,
+  getCareerProfile,
+  createLoan,
+  getLoansByUserId,
+  getStudentProfile,
+  updateStudentProfile,
+  getUserDocuments,
+  upsertUserDocument,
+} from '../utils/mockDb.js'
 
 const router = express.Router()
 
@@ -26,6 +36,27 @@ router.get('/career-profile', verifyToken, (req, res) => {
 router.put('/career-profile', verifyToken, (req, res) => {
   const profile = updateCareerProfile(req.user.id, req.body)
   res.json({ profile })
+})
+
+router.get('/profile-center', verifyToken, (req, res) => {
+  const profile = getStudentProfile(req.user.id)
+  const documents = getUserDocuments(req.user.id)
+  res.json({ profile, documents })
+})
+
+router.put('/profile-center', verifyToken, (req, res) => {
+  const profile = updateStudentProfile(req.user.id, req.body)
+  res.json({ profile })
+})
+
+router.post('/documents', verifyToken, (req, res) => {
+  const document = upsertUserDocument(req.user.id, req.body)
+  res.json({ document })
+})
+
+router.get('/documents', verifyToken, (req, res) => {
+  const documents = getUserDocuments(req.user.id)
+  res.json({ documents })
 })
 
 router.get('/loans', verifyToken, (req, res) => {

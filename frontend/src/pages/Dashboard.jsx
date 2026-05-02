@@ -1,63 +1,97 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight, Calendar, DollarSign, GraduationCap, LineChart, Search, Target, TrendingUp, Zap } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowRight,
+  Calendar,
+  DollarSign,
+  GraduationCap,
+  LineChart,
+  Search,
+  ShieldCheck,
+  Target,
+  TrendingUp,
+  Zap,
+} from 'lucide-react'
 import { Badge, Button, Card, ProgressBar, StatCard } from '../components'
 import SmartSearchBar from '../components/SmartSearchBar'
 import { colleges } from '../data/colleges'
-import { useAuthStore } from '../store'
-import { useCollegeStore } from '../store'
+import { userService } from '../services/api'
+import { useAuthStore, useCollegeStore } from '../store'
 import { filterAndRankColleges, getTotalCost } from '../utils/collegeSearch'
 
 export default function Dashboard() {
   const user = useAuthStore((state) => state.user)
   const { savedCollegeIds, recentlyViewedIds } = useCollegeStore()
-  const [dashboardSearch, setDashboardSearch] = React.useState('')
+  const [dashboardSearch, setDashboardSearch] = useState('')
+  const [profileCenter, setProfileCenter] = useState({ profile: null, documents: [] })
 
-  const dashboardData = {
-    career: {
-      target: 'Software engineer - US/Canada',
-      progress: 65,
-      nextAction: 'Complete skill assessment',
-    },
-    loan: {
-      total: 4500000,
-      available: 1200000,
-      interest_rate: 9.5,
-      tenure_months: 120,
-      emi: 47869,
-    },
-    financial: {
-      savings: 250000,
-      monthly_expense: 35000,
-      roi_score: 8.2,
-    },
-  }
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      try {
+        const { data } = await userService.getProfileCenter()
+        if (mounted) {
+          setProfileCenter({
+            profile: data.profile,
+            documents: data.documents || [],
+          })
+        }
+      } catch {
+        // Keep fallback dashboard state when backend profile data is not ready yet.
+      }
+    }
+    load()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const profileStrength = getProfileStrength(profileCenter.profile, profileCenter.documents)
+  const missingDocs = profileCenter.documents.filter((doc) => doc.status === 'missing').length
+  const loanEstimate = 47869
+  const financialStress = Math.max(18, 100 - profileStrength + missingDocs * 4)
 
   const quickActions = [
-    { icon: Zap, title: 'EMI Calculator', description: 'Optimize your loan repayment', href: '/emi-calculator' },
-    { icon: Target, title: 'Career Discovery', description: 'Explore role and country fit', href: '/career-discovery' },
-    { icon: LineChart, title: 'Profile Enhancer', description: 'Prioritize high-impact gaps', href: '/profile-enhancer' },
-    { icon: Calendar, title: 'Progress Tracker', description: 'Review your journey stages', href: '/progress' },
+    { icon: Search, title: 'College Finder', description: 'Search colleges, courses, and countries', href: '/college-finder' },
+    { icon: Zap, title: 'EMI Calculator', description: 'Model repayment options', href: '/emi-calculator' },
+    { icon: Target, title: 'Career Discovery', description: 'Refine role and destination fit', href: '/career-discovery' },
+    { icon: Calendar, title: 'Profile Center', description: 'Finish profile and upload documents', href: '/profile-enhancer' },
   ]
 
   const recentActivities = [
-    { label: 'Profile', action: 'Updated career profile', time: '2 hours ago' },
-    { label: 'EMI', action: 'Calculated repayment strategy', time: '1 day ago' },
-    { label: 'Skills', action: 'Completed skill assessment', time: '3 days ago' },
+    { label: 'Profile', action: 'Guided onboarding updates improve personalization', time: 'Now' },
+    { label: 'Docs', action: `${profileCenter.documents.filter((doc) => doc.status === 'uploaded').length} documents ready for review`, time: 'Live' },
+    { label: 'Finder', action: 'Smart search supports colleges, courses, and natural prompts', time: 'Ready' },
   ]
 
-  const utilized = dashboardData.loan.total - dashboardData.loan.available
-  const recommended = filterAndRankColleges(colleges, 'Canada MS data science high roi', {
-    country: 'All',
-    courseType: 'All',
-    field: 'All',
-    maxBudget: 70,
-    ieltsRequired: 'Any',
-    greRequired: 'Any',
-    universityType: 'All',
-    scholarship: 'Any',
-  }).slice(0, 3)
+  const recommended = profileCenter.profile
+    ? filterAndRankColleges(
+        colleges,
+        `${profileCenter.profile.preferences?.preferred_countries || ''} ${profileCenter.profile.preferences?.field_of_interest || ''} ${profileCenter.profile.preferences?.target_level || ''}`,
+        {
+          country: 'All',
+          courseType: 'All',
+          field: 'All',
+          maxBudget: Number(profileCenter.profile.preferences?.budget_range || 70),
+          ieltsRequired: 'Any',
+          greRequired: 'Any',
+          universityType: 'All',
+          scholarship: 'Any',
+        }
+      ).slice(0, 3)
+    : filterAndRankColleges(colleges, 'Canada MS data science high roi', {
+        country: 'All',
+        courseType: 'All',
+        field: 'All',
+        maxBudget: 70,
+        ieltsRequired: 'Any',
+        greRequired: 'Any',
+        universityType: 'All',
+        scholarship: 'Any',
+      }).slice(0, 3)
+
   const saved = colleges.filter((college) => savedCollegeIds.includes(college.id)).slice(0, 3)
   const recent = recentlyViewedIds.map((id) => colleges.find((college) => college.id === id)).filter(Boolean).slice(0, 3)
 
@@ -70,13 +104,11 @@ export default function Dashboard() {
               <Badge className="mb-5 px-4 py-1.5">Student command center</Badge>
               <h1 className="text-4xl font-semibold tracking-[-0.045em] text-[#0a2540] dark:text-white sm:text-5xl">Welcome back, {user?.name || 'Student'}</h1>
               <p className="mt-3 max-w-2xl text-[15px] leading-7 text-slate-600 dark:text-slate-300">
-                Your career, funding, and readiness overview for the next application milestone.
+                Build your profile, upload documents, discover best-fit programs, and model the full financial plan from one workspace.
               </p>
             </div>
-            <Link to="/emi-calculator">
-              <Button className="gap-2">
-                Optimize repayment <Zap className="h-4 w-4" />
-              </Button>
+            <Link to="/profile-enhancer">
+              <Button className="gap-2">Complete profile <Zap className="h-4 w-4" /></Button>
             </Link>
           </div>
         </motion.div>
@@ -98,10 +130,48 @@ export default function Dashboard() {
         </div>
 
         <div className="mb-8 grid gap-5 md:grid-cols-4">
-          <StatCard label="Career Progress" value={dashboardData.career.progress} unit="%" icon={Target} trend="+5% this month" />
-          <StatCard label="Total Loan" value={(dashboardData.loan.total / 100000).toFixed(1)} unit="L" icon={DollarSign} trend="9.5% interest" trendUp={false} />
-          <StatCard label="Monthly EMI" value={dashboardData.loan.emi} unit="Rs" icon={Calendar} trend="120 months tenure" />
-          <StatCard label="ROI Score" value={dashboardData.financial.roi_score} unit="/10" icon={TrendingUp} trend="Good financial health" />
+          <StatCard label="Profile Strength" value={profileStrength} unit="%" icon={Target} trend={`${missingDocs} missing documents`} trendUp={missingDocs === 0} />
+          <StatCard label="Loan Estimate" value={loanEstimate} unit="Rs EMI" icon={DollarSign} trend="10-year repayment model" />
+          <StatCard label="Admission Chances" value={recommended[0]?.admissionProbability || 0} unit="%" icon={Calendar} trend="Best current match" />
+          <StatCard label="Stress Score" value={financialStress} unit="/100" icon={TrendingUp} trend={financialStress < 45 ? 'Manageable profile' : 'Needs planning'} trendUp={financialStress < 45} />
+        </div>
+
+        <div className="mb-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <Card hover={false}>
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight text-[#0a2540] dark:text-white">Profile dashboard</h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">This score powers college ranking, affordability, and admission probability.</p>
+              </div>
+              <Link to="/profile-enhancer">
+                <Button variant="outline">Open profile center</Button>
+              </Link>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <ProfileMetric label="Academics" value={getAcademicStrength(profileCenter.profile)} subtitle="Qualification, GPA, major" />
+              <ProfileMetric label="Documents" value={getDocumentStrength(profileCenter.documents)} subtitle="Upload and review progress" />
+              <ProfileMetric label="Test scores" value={getScoreStrength(profileCenter.profile)} subtitle="IELTS, TOEFL, GRE, GMAT" />
+            </div>
+            <div className="mt-6 rounded-2xl bg-gradient-to-br from-[#0a2540] to-[#173b5c] p-5 text-white">
+              <p className="text-sm text-slate-300">Current study target</p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight">{profileCenter.profile?.preferences?.field_of_interest || 'Computer Science'} {profileCenter.profile?.preferences?.target_level || 'PG'}</p>
+              <div className="mt-5 rounded-2xl border border-white/10 bg-white/10 p-4 text-sm font-medium text-slate-100">
+                Next action: {missingDocs > 0 ? `Upload ${missingDocs} missing document${missingDocs > 1 ? 's' : ''}` : 'Compare recommended colleges and refine budget.'}
+              </div>
+            </div>
+          </Card>
+
+          <Card hover={false}>
+            <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#0a2540] dark:text-white">Smart alerts</h2>
+            <div className="space-y-3">
+              {buildDashboardAlerts(profileCenter.profile, profileCenter.documents).map((alert) => (
+                <div key={alert} className="flex items-start gap-3 rounded-2xl border border-slate-200/70 bg-white/60 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                  <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />
+                  <p className="text-sm text-slate-600 dark:text-slate-300">{alert}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
         </div>
 
         <div className="mb-8 grid gap-6 lg:grid-cols-3">
@@ -109,46 +179,40 @@ export default function Dashboard() {
             <Card hover={false} className="overflow-hidden">
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-semibold tracking-[-0.025em] text-[#0a2540] dark:text-white">Career recommendation</h2>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Based on your current profile and budget</p>
+                  <h2 className="text-2xl font-semibold tracking-[-0.025em] text-[#0a2540] dark:text-white">Best match right now</h2>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Personalized from study preferences, budget, and uploaded evidence.</p>
                 </div>
-                <Badge variant="success">On track</Badge>
+                <Badge variant="success">{recommended[0]?.admissionProbability || 0}% chance</Badge>
               </div>
 
               <div className="grid gap-4 md:grid-cols-[1fr_0.8fr]">
                 <div className="rounded-2xl bg-gradient-to-br from-[#0a2540] to-[#173b5c] p-5 text-white">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Target career</p>
-                  <p className="mt-2 text-2xl font-semibold tracking-tight">{dashboardData.career.target}</p>
+                  <p className="text-sm text-slate-300">Recommended college</p>
+                  <p className="mt-2 text-2xl font-semibold tracking-tight">{recommended[0]?.university || 'University recommendation pending'}</p>
+                  <p className="mt-2 text-sm text-slate-300">{recommended[0]?.course || 'Complete profile fields for more precise matches.'}</p>
                   <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-4 text-sm font-medium text-slate-100">
-                    Next action: {dashboardData.career.nextAction}
+                    Estimated total cost: Rs {recommended[0] ? recommended[0].feesLakhs + recommended[0].livingLakhs : 0}L
                   </div>
                 </div>
                 <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 dark:border-slate-800 dark:bg-slate-950/40">
-                  <ProgressBar label="Development progress" value={dashboardData.career.progress} max={100} animated={false} />
-                  <Link to="/career-discovery" className="mt-6 block">
-                    <Button variant="outline" className="w-full">Update profile</Button>
+                  <ProgressBar label="Admission probability" value={recommended[0]?.admissionProbability || 0} max={100} animated={false} />
+                  <Link to="/college-finder" className="mt-6 block">
+                    <Button variant="outline" className="w-full">Open college finder</Button>
                   </Link>
                 </div>
               </div>
             </Card>
 
             <Card hover={false}>
-              <h2 className="mb-6 text-2xl font-semibold tracking-[-0.025em] text-[#0a2540] dark:text-white">Loan intelligence</h2>
+              <h2 className="mb-6 text-2xl font-semibold tracking-[-0.025em] text-[#0a2540] dark:text-white">Financial outlook</h2>
               <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-slate-200/70 dark:bg-slate-950/40 dark:ring-slate-800">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Loan amount</p>
-                  <p className="mt-1 text-xl font-bold">Rs {(dashboardData.loan.total / 100000).toFixed(1)}L</p>
-                </div>
-                <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-slate-200/70 dark:bg-slate-950/40 dark:ring-slate-800">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Interest rate</p>
-                  <p className="mt-1 text-xl font-bold">{dashboardData.loan.interest_rate}%</p>
-                </div>
-                <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-slate-200/70 dark:bg-slate-950/40 dark:ring-slate-800">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Savings available</p>
-                  <p className="mt-1 text-xl font-bold">Rs {(dashboardData.financial.savings / 100000).toFixed(1)}L</p>
-                </div>
+                <FinancialMetric label="Loan estimate" value="Rs 45.0L" subtitle="Based on target shortlist" />
+                <FinancialMetric label="Monthly EMI" value="Rs 47,869" subtitle="9.5% for 120 months" />
+                <FinancialMetric label="Stress score" value={`${financialStress}/100`} subtitle="Profile and budget adjusted" />
               </div>
-              <ProgressBar className="mt-6" label="Loan utilization" value={utilized} max={dashboardData.loan.total} animated={false} />
+              <Link to="/emi-calculator" className="mt-6 inline-flex">
+                <Button variant="outline">Open repayment simulator</Button>
+              </Link>
             </Card>
           </div>
 
@@ -193,12 +257,14 @@ export default function Dashboard() {
             </Card>
 
             <Card hover={false} className="border-[#635bff]/20 bg-[#635bff]/[0.06] dark:border-[#635bff]/30 dark:bg-[#635bff]/10">
-              <h2 className="mb-3 text-xl font-bold">AI insight</h2>
+              <h2 className="mb-3 flex items-center gap-2 text-xl font-bold"><ShieldCheck className="h-5 w-5 text-[#635bff]" /> AI insight</h2>
               <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">
-                Based on your profile, extra payments could save up to Rs 5L in interest and reduce your loan timeline from 120 months to about 96 months.
+                {profileStrength >= 75
+                  ? 'Your profile is strong enough to unlock more selective programs. Add final financial documents to tighten scholarship and affordability guidance.'
+                  : 'Completing profile fields and missing documents will improve recommendation quality, loan estimates, and admission probability scoring.'}
               </p>
-              <Link to="/emi-calculator" className="mt-4 block">
-                <Button size="sm" className="w-full">See optimization</Button>
+              <Link to="/profile-enhancer" className="mt-4 block">
+                <Button size="sm" className="w-full">Improve profile</Button>
               </Link>
             </Card>
           </div>
@@ -247,4 +313,57 @@ function DashboardCollegeSection({ title, items, empty }) {
       )}
     </Card>
   )
+}
+
+function ProfileMetric({ label, value, subtitle }) {
+  return (
+    <div className="rounded-2xl border border-slate-200/70 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+      <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{label}</p>
+      <p className="mt-2 text-2xl font-semibold tracking-tight">{value}%</p>
+      <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+    </div>
+  )
+}
+
+function FinancialMetric({ label, value, subtitle }) {
+  return (
+    <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-slate-200/70 dark:bg-slate-950/40 dark:ring-slate-800">
+      <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{label}</p>
+      <p className="mt-2 text-xl font-semibold tracking-tight">{value}</p>
+      <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+    </div>
+  )
+}
+
+function getAcademicStrength(profile) {
+  if (!profile) return 40
+  const fields = ['qualification', 'gpa', 'major']
+  return Math.round((fields.filter((field) => String(profile.academics?.[field] || '').trim()).length / fields.length) * 100)
+}
+
+function getDocumentStrength(documents) {
+  if (!documents.length) return 34
+  return Math.round((documents.reduce((sum, doc) => sum + (doc.status === 'uploaded' ? 1 : doc.status === 'needs_improvement' ? 0.6 : 0), 0) / documents.length) * 100)
+}
+
+function getScoreStrength(profile) {
+  if (!profile) return 24
+  const fields = ['ielts', 'toefl', 'gre', 'gmat', 'others']
+  return Math.min(100, Math.round((fields.filter((field) => String(profile.test_scores?.[field] || '').trim()).length / 2) * 100))
+}
+
+function getProfileStrength(profile, documents) {
+  const academics = getAcademicStrength(profile)
+  const docs = getDocumentStrength(documents)
+  const scores = getScoreStrength(profile)
+  return Math.round(academics * 0.35 + docs * 0.4 + scores * 0.25)
+}
+
+function buildDashboardAlerts(profile, documents) {
+  const alerts = []
+  if (!profile) alerts.push('Start the guided profile builder to personalize colleges and financial estimates.')
+  if (documents.some((doc) => doc.doc_type === 'Statement of Purpose' && doc.status !== 'uploaded')) alerts.push('Upload or improve your SOP to sharpen admission recommendations.')
+  if (!String(profile?.test_scores?.gre || '').trim()) alerts.push('You can improve admission chances by adding GRE for selective programs.')
+  if (documents.filter((doc) => doc.status === 'missing').length > 0) alerts.push('Complete missing documents to improve loan and visa readiness analysis.')
+  return alerts.slice(0, 4)
 }

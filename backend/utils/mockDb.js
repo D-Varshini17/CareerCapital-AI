@@ -4,6 +4,8 @@
 const users = new Map()
 const loans = new Map()
 const careerProfiles = new Map()
+const studentProfiles = new Map()
+const userDocuments = new Map()
 
 let userIdCounter = 1
 let loanIdCounter = 1
@@ -66,10 +68,51 @@ export const getCareerProfile = (userId) => {
   return careerProfiles.get(userId.toString())
 }
 
+export const getStudentProfile = (userId) => {
+  return studentProfiles.get(userId.toString()) || null
+}
+
+export const updateStudentProfile = (userId, profile) => {
+  const existing = studentProfiles.get(userId.toString()) || {}
+  const updated = {
+    ...existing,
+    ...profile,
+    userId,
+    updatedAt: new Date(),
+  }
+  studentProfiles.set(userId.toString(), updated)
+  return updated
+}
+
+export const getUserDocuments = (userId) => {
+  return userDocuments.get(userId.toString()) || []
+}
+
+export const upsertUserDocument = (userId, document) => {
+  const existing = userDocuments.get(userId.toString()) || []
+  const next = [...existing]
+  const index = next.findIndex((item) => item.doc_type === document.doc_type)
+  const updated = {
+    ...next[index],
+    ...document,
+    userId,
+    updatedAt: new Date(),
+  }
+  if (index >= 0) {
+    next[index] = updated
+  } else {
+    next.push(updated)
+  }
+  userDocuments.set(userId.toString(), next)
+  return updated
+}
+
 export const resetMockData = () => {
   users.clear()
   loans.clear()
   careerProfiles.clear()
+  studentProfiles.clear()
+  userDocuments.clear()
   userIdCounter = 1
   loanIdCounter = 1
 }
