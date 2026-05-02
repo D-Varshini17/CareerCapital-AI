@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ChatBot from './components/ChatBot'
 import AppSidebar from './components/AppSidebar'
+import { WorkspaceTopNav, StickyNextStep } from './components'
 
 // Pages
 import LandingPage from './pages/LandingPage'
@@ -21,11 +22,14 @@ import ProfileEnhancer from './pages/ProfileEnhancer'
 import CollegeFinder from './pages/CollegeFinder'
 import AdmissionPlanning from './pages/AdmissionPlanning'
 import AIEngine from './pages/AIEngine'
+import AIAssistant from './pages/AIAssistant'
 import AlertsPage from './pages/AlertsPage'
+import ScholarshipsPage from './pages/ScholarshipsPage'
 
 const workspaceRoutes = new Set([
   '/dashboard',
   '/ai-engine',
+  '/ai-assistant',
   '/alerts',
   '/emi-calculator',
   '/career-discovery',
@@ -36,6 +40,7 @@ const workspaceRoutes = new Set([
   '/mentorship',
   '/living-assistant',
   '/profile-enhancer',
+  '/scholarships',
 ])
 
 export default function App() {
@@ -66,13 +71,16 @@ function AppFrame() {
       {isWorkspace ? (
         <div className="flex min-h-screen">
           <AppSidebar />
-          <main className="min-w-0 flex-1">
-            <Routes>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <WorkspaceTopNav />
+            <main className="min-w-0 flex-1">
+              <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/ai-engine" element={<AIEngine />} />
+              <Route path="/ai-assistant" element={<AIAssistant />} />
               <Route path="/alerts" element={<AlertsPage />} />
               <Route path="/emi-calculator" element={<EMICalculator />} />
               <Route path="/career-discovery" element={<CareerDiscovery />} />
@@ -83,8 +91,11 @@ function AppFrame() {
               <Route path="/mentorship" element={<MentorshipMarketplace />} />
               <Route path="/living-assistant" element={<SmartLivingAssistant />} />
               <Route path="/profile-enhancer" element={<ProfileEnhancer />} />
+              <Route path="/scholarships" element={<ScholarshipsPage />} />
             </Routes>
-          </main>
+            </main>
+            <StickyNextStep />
+          </div>
         </div>
       ) : (
         <>
@@ -106,12 +117,12 @@ function AppFrame() {
               <Route path="/mentorship" element={<MentorshipMarketplace />} />
               <Route path="/living-assistant" element={<SmartLivingAssistant />} />
               <Route path="/profile-enhancer" element={<ProfileEnhancer />} />
+              <Route path="/scholarships" element={<ScholarshipsPage />} />
             </Routes>
           </main>
           <Footer />
         </>
       )}
-      <ChatBot />
     </div>
   )
 }

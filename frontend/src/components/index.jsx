@@ -210,3 +210,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
     </motion.div>
   )
 }
+
+export { default as WorkspaceTopNav } from './WorkspaceTopNav'
+
+export { default as StickyNextStep } from './StickyNextStep'

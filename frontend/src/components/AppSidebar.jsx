@@ -2,10 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
+  Bell,
+  BrainCircuit,
   Briefcase,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   FileText,
+  Folder,
   GraduationCap,
   Landmark,
   LayoutDashboard,
@@ -15,6 +19,7 @@ import {
   Plane,
   Search,
   Sparkles,
+  Star,
   Sun,
   Target,
   Trophy,
@@ -122,19 +127,35 @@ export default function AppSidebar() {
         <div className="mb-4 space-y-2">
           <SidebarFeatureLink
             collapsed={collapsed}
-            href="/admission-planning"
-            icon={GraduationCap}
-            label="Admission Planning"
-            active={location.pathname === '/admission-planning'}
+            href="/ai-assistant"
+            icon={Sparkles}
+            label="AI Assistant"
+            active={location.pathname === '/ai-assistant'}
             onClick={() => setMobileOpen(false)}
           />
           <SidebarFeatureLink
             collapsed={collapsed}
-            href="/profile-enhancer"
-            icon={Sparkles}
-            label="Profile Enhancement"
-            active={location.pathname === '/profile-enhancer'}
+            href="/ai-engine"
+            icon={BrainCircuit}
+            label="AI Decision Engine"
+            active={location.pathname === '/ai-engine'}
             onClick={() => setMobileOpen(false)}
+            badge="NEW"
+          />
+        </div>
+
+        {!collapsed && (
+          <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Tools</p>
+        )}
+        <div className="mb-4 space-y-2">
+          <SidebarFeatureLink
+            collapsed={collapsed}
+            href="/alerts"
+            icon={Bell}
+            label="Alerts & Reminders"
+            active={location.pathname === '/alerts'}
+            onClick={() => setMobileOpen(false)}
+            badge="2"
           />
         </div>
 
@@ -168,6 +189,8 @@ export default function AppSidebar() {
           {journeyStages.map((item) => {
             const Icon = stageIcons[item.number]
             const active = location.pathname === item.href
+            const isPast = parseInt(item.number, 10) < parseInt(currentStage.number, 10)
+            const isCurrent = parseInt(item.number, 10) === parseInt(currentStage.number, 10)
             return (
               <Link
                 key={`${item.number}-${item.label}`}
@@ -188,16 +211,19 @@ export default function AppSidebar() {
                 ) : (
                   <div className="flex items-start gap-3">
                     <div className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border text-[11px] font-bold ${
-                      active
+                      isCurrent
                         ? 'border-teal-500/45 bg-teal-500/15 text-teal-700 dark:border-teal-300/35 dark:bg-white/8 dark:text-[#7ce7ff]'
+                        : isPast
+                        ? 'border-teal-500/40 bg-teal-500/10 text-teal-600 dark:border-teal-400/30 dark:bg-teal-500/10 dark:text-teal-400'
                         : 'border-slate-300/80 bg-white text-slate-600 dark:border-white/12 dark:bg-white/6 dark:text-slate-300'
                     }`}>
-                      {item.number}
+                      {isPast ? <CheckCircle2 className="h-5 w-5" /> : item.number}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <Icon className={`h-4 w-4 flex-shrink-0 ${active ? 'text-teal-700 dark:text-[#7ce7ff]' : 'text-slate-500 dark:text-slate-400'}`} />
                         <p className="truncate text-sm font-semibold">{item.label}</p>
+                        {isCurrent && <Star className="h-3.5 w-3.5 animate-pulse fill-teal-500 text-teal-500" />}
                       </div>
                     </div>
                   </div>
@@ -241,6 +267,11 @@ export default function AppSidebar() {
             {!collapsed && <span>Sign Out</span>}
           </button>
         </div>
+        {!collapsed && (
+          <div className="mt-4 text-center">
+            <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">TEAM 🚀 | Vishalsai BJ & D Varshini</p>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -286,7 +317,7 @@ export default function AppSidebar() {
   )
 }
 
-function SidebarFeatureLink({ collapsed, href, icon: Icon, label, active, onClick }) {
+function SidebarFeatureLink({ collapsed, href, icon: Icon, label, active, onClick, badge }) {
   return (
     <Link
       to={href}
@@ -304,7 +335,16 @@ function SidebarFeatureLink({ collapsed, href, icon: Icon, label, active, onClic
       <div className={`rounded-xl p-2 ${active ? 'bg-teal-500/15 text-teal-700 dark:bg-white/8 dark:text-[#7ce7ff]' : 'bg-slate-100 text-slate-600 dark:bg-white/6 dark:text-slate-300'}`}>
         <Icon className="h-4 w-4" />
       </div>
-      {!collapsed && <p className="truncate text-sm font-semibold">{label}</p>}
+      {!collapsed && (
+        <div className="flex min-w-0 flex-1 items-center justify-between pr-1">
+          <p className="truncate text-sm font-semibold">{label}</p>
+          {badge && (
+            <span className="ml-2 flex-shrink-0 rounded bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-bold text-rose-600 dark:bg-rose-500/20 dark:text-rose-400">
+              {badge}
+            </span>
+          )}
+        </div>
+      )}
     </Link>
   )
 }

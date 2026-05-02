@@ -2,31 +2,39 @@ import React, { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  AlertTriangle,
+  AlertCircle,
   ArrowRight,
+  Bell,
+  BrainCircuit,
   Calendar,
+  CheckCircle2,
+  ChevronRight,
+  CreditCard,
   DollarSign,
+  FileText,
+  FolderOpen,
   GraduationCap,
-  LineChart,
-  Search,
-  ShieldCheck,
+  Sparkles,
   Target,
-  TrendingUp,
-  Zap,
+  Trophy,
 } from 'lucide-react'
-import { Badge, Button, Card, ProgressBar, StatCard } from '../components'
-import SmartSearchBar from '../components/SmartSearchBar'
+import { Badge, Button, Card, ProgressBar } from '../components'
 import { colleges } from '../data/colleges'
 import { userService } from '../services/api'
 import { useAuthStore, useCollegeStore } from '../store'
 import { filterAndRankColleges, getTotalCost } from '../utils/collegeSearch'
-import { buildWorkspaceAlerts, getAcademicStrength, getCurrentStage, getDocumentStrength, getProfileStrength, getScoreStrength, getSmartSuggestion } from '../utils/workspace'
+import {
+  buildWorkspaceAlerts,
+  getCurrentStage,
+  getProfileGaps,
+  getProfileStrength,
+  journeyStages
+} from '../utils/workspace'
 
 export default function Dashboard() {
   const location = useLocation()
   const user = useAuthStore((state) => state.user)
   const { recentlyViewedIds } = useCollegeStore()
-  const [dashboardSearch, setDashboardSearch] = useState('')
   const [profileCenter, setProfileCenter] = useState({ profile: null, documents: [] })
   const [shortlist, setShortlist] = useState([])
 
@@ -46,352 +54,275 @@ export default function Dashboard() {
           setShortlist(shortlistResponse.data.shortlist || [])
         }
       } catch {
-        // Keep fallback dashboard state when backend profile data is not ready yet.
+        // Fallback handled smoothly
       }
     }
     load()
-    return () => {
-      mounted = false
-    }
+    return () => { mounted = false }
   }, [])
 
-  const profileStrength = getProfileStrength(profileCenter.profile, profileCenter.documents)
-  const missingDocs = profileCenter.documents.filter((doc) => doc.status === 'missing').length
-  const loanEstimate = 47869
-  const financialStress = Math.max(18, 100 - profileStrength + missingDocs * 4)
   const currentStage = getCurrentStage(location.pathname)
+  const profileStrength = getProfileStrength(profileCenter.profile, profileCenter.documents)
+  const profileGaps = getProfileGaps(profileCenter.profile, profileCenter.documents)
 
-  const quickActions = [
-    { icon: Search, title: 'Admission Planning', description: 'Search colleges, courses, and requirements', href: '/admission-planning' },
-    { icon: Zap, title: 'EMI Calculator', description: 'Model repayment options', href: '/emi-calculator' },
-    { icon: Target, title: 'Career Discovery', description: 'Refine role and destination fit', href: '/career-discovery' },
-    { icon: Calendar, title: 'Profile Center', description: 'Finish profile and upload documents', href: '/profile-enhancer' },
-  ]
+  // Document Vault Metrics
+  const docTotal = 5
+  const docUploaded = profileCenter.documents.filter(d => d.status === 'uploaded').length
+  const docMissing = docTotal - docUploaded
+  const docScore = Math.round((docUploaded / docTotal) * 100)
 
-  const recentActivities = [
-    { label: 'Profile', action: 'Guided onboarding updates improve personalization', time: 'Now' },
-    { label: 'Docs', action: `${profileCenter.documents.filter((doc) => doc.status === 'uploaded').length} documents ready for review`, time: 'Live' },
-    { label: 'Finder', action: 'Smart search supports colleges, courses, and natural prompts', time: 'Ready' },
-  ]
-
-  const recommended = profileCenter.profile
-    ? filterAndRankColleges(
-        colleges,
-        `${profileCenter.profile.preferences?.preferred_countries || ''} ${profileCenter.profile.preferences?.field_of_interest || ''} ${profileCenter.profile.preferences?.target_level || ''}`,
-        {
-          country: 'All',
-          courseType: 'All',
-          field: 'All',
-          maxBudget: Number(profileCenter.profile.preferences?.budget_range || 70),
-          ieltsRequired: 'Any',
-          greRequired: 'Any',
-          universityType: 'All',
-          scholarship: 'Any',
-        }
-      ).slice(0, 3)
-    : filterAndRankColleges(colleges, 'Canada MS data science high roi', {
-        country: 'All',
-        courseType: 'All',
-        field: 'All',
-        maxBudget: 70,
-        ieltsRequired: 'Any',
-        greRequired: 'Any',
-        universityType: 'All',
-        scholarship: 'Any',
-      }).slice(0, 3)
+  // Financial Stress & Loan Metrics
+  const loanEstimate = 2800000 // 28L
+  const financialStress = 62
+  const getStressColor = (score) => {
+    if (score < 40) return 'text-red-600 bg-red-100'
+    if (score < 70) return 'text-amber-600 bg-amber-100'
+    return 'text-emerald-600 bg-emerald-100'
+  }
+  const getStressColorBg = (score) => {
+    if (score < 40) return 'bg-red-500'
+    if (score < 70) return 'bg-amber-500'
+    return 'bg-emerald-500'
+  }
+  const stressBand = financialStress < 40 ? 'High' : financialStress < 70 ? 'Moderate' : 'Comfortable'
 
   const saved = shortlist
-    .map((item) => ({ ...colleges.find((college) => college.id === item.collegeId), applicationStatus: item.applicationStatus }))
+    .map((item) => ({ ...colleges.find((c) => c.id === item.collegeId), applicationStatus: item.applicationStatus }))
     .filter((item) => item?.id)
     .slice(0, 3)
-  const recent = recentlyViewedIds.map((id) => colleges.find((college) => college.id === id)).filter(Boolean).slice(0, 3)
+
   const workspaceAlerts = buildWorkspaceAlerts(profileCenter.profile, profileCenter.documents, saved)
-  const smartSuggestion = getSmartSuggestion(profileCenter.profile, profileCenter.documents, location.pathname)
+
+  // Fake matched scholarships
+  const matchedScholarships = [
+    { id: 1, name: 'Global Excellence Award', sponsor: 'Govt. of Canada', amount: '₹5,000,000', deadline: 14 },
+    { id: 2, name: 'Stem Future Leaders', sponsor: 'University of Toronto', amount: '30% Tuition', deadline: 28 },
+    { id: 3, name: 'Women in Tech Grant', sponsor: 'Tech Corp', amount: '₹1,500,000', deadline: 45 },
+  ]
 
   return (
-    <div className="min-h-screen soft-grid py-10 pb-24">
-      <div className="page-shell">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }} className="mb-10">
-          <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
-            <div>
-              <Badge className="mb-5 px-4 py-1.5">Student command center</Badge>
-              <h1 className="text-4xl font-semibold tracking-[-0.045em] text-[#0a2540] dark:text-white sm:text-5xl">Welcome back, {user?.name || 'Student'}</h1>
-              <p className="mt-3 max-w-2xl text-[15px] leading-7 text-slate-600 dark:text-slate-300">
-                Build your profile, upload documents, discover best-fit programs, and model the full financial plan from one workspace.
-              </p>
+    <div className="min-h-screen py-8 pb-24 dark:bg-slate-900">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+
+        {/* 1. AI Recommendation Banner */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 rounded-2xl bg-gradient-to-r from-[#0a2540] to-[#173b5c] p-1">
+          <div className="flex items-center justify-between rounded-xl bg-[#0a2540] px-4 py-3 sm:px-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-[#00d4ff]">
+                <BrainCircuit className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-white sm:text-base">
+                  Based on your profile, Canada with a ₹28L loan is your safest choice.
+                </p>
+                <div className="mt-1 flex items-center gap-2 text-xs text-slate-300">
+                  <span className="flex items-center gap-1"><Target className="h-3.5 w-3.5 text-emerald-400" /> High Confidence</span>
+                  <span>•</span>
+                  <span>Projected Stress Score: 62 (Moderate)</span>
+                </div>
+              </div>
             </div>
-            <Link to="/profile-enhancer">
-              <Button className="gap-2">Complete profile <Zap className="h-4 w-4" /></Button>
+            <Link to="/ai-engine" className="hidden shrink-0 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 sm:block">
+              See Full Report
             </Link>
           </div>
         </motion.div>
 
-        <div className="mb-8 rounded-[1.75rem] border border-white/70 bg-white/75 p-4 shadow-[0_20px_70px_rgba(10,37,64,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/70">
-          <div className="mb-3 flex items-center gap-2 px-2 text-sm font-semibold text-[#0a2540] dark:text-white">
-            <Search className="h-4 w-4 text-[#635bff]" />
-            Global smart search
-          </div>
-          <SmartSearchBar
-            value={dashboardSearch}
-            onChange={setDashboardSearch}
-            onSubmit={(value) => {
-              const encoded = encodeURIComponent(value || '')
-              window.location.href = `/college-finder?q=${encoded}`
-            }}
-            compact
-          />
-        </div>
-
-        <div className="mb-8 grid gap-5 md:grid-cols-4">
-          <StatCard label="Profile Strength" value={profileStrength} unit="%" icon={Target} trend={`${missingDocs} missing documents`} trendUp={missingDocs === 0} />
-          <StatCard label="Loan Estimate" value={loanEstimate} unit="Rs EMI" icon={DollarSign} trend="10-year repayment model" />
-          <StatCard label="Admission Chances" value={recommended[0]?.admissionProbability || 0} unit="%" icon={Calendar} trend="Best current match" />
-          <StatCard label="Stress Score" value={financialStress} unit="/100" icon={TrendingUp} trend={financialStress < 45 ? 'Manageable profile' : 'Needs planning'} trendUp={financialStress < 45} />
-        </div>
-
-        <div className="mb-8 grid gap-6 lg:grid-cols-3">
-          <Card hover={false}>
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Current Stage Indicator</p>
-            <p className="mt-3 text-2xl font-semibold tracking-tight text-[#0a2540] dark:text-white">
-              Stage {currentStage.number} - {currentStage.label}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{currentStage.detail}</p>
-          </Card>
-          <Card hover={false}>
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Profile Completion Bar</p>
-            <div className="mt-3">
-              <ProgressBar value={profileStrength} max={100} animated={false} />
-            </div>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{missingDocs} item{missingDocs === 1 ? '' : 's'} still blocking a stronger recommendation model.</p>
-          </Card>
-          <Card hover={false}>
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Smart Suggestion Card</p>
-            <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">{smartSuggestion}</p>
-            <Link to="/admission-planning" className="mt-4 inline-flex">
-              <Button variant="outline" size="sm">Open admission planning</Button>
-            </Link>
-          </Card>
-        </div>
-
-        <div className="mb-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <Card hover={false}>
-            <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="grid gap-6 lg:grid-cols-2 mb-8">
+          {/* 2. Current Stage Indicator */}
+          <Card hover={false} className="bg-slate-900 border-slate-800 text-white dark:bg-slate-950 dark:border-slate-800">
+            <div className="flex flex-col h-full justify-between">
               <div>
-                <h2 className="text-xl font-semibold tracking-tight text-[#0a2540] dark:text-white">Profile dashboard</h2>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">This score powers college ranking, affordability, and admission probability.</p>
+                <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Current Stage</p>
+                <div className="mt-4 flex items-start gap-4">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-teal-500/30 bg-teal-500/10 text-2xl font-bold text-teal-400">
+                    {currentStage.number}
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-white">{currentStage.label}</h2>
+                    <p className="mt-1 text-sm text-slate-400">{currentStage.detail}</p>
+                  </div>
+                </div>
               </div>
-              <Link to="/profile-enhancer">
-                <Button variant="outline">Open profile center</Button>
+              <Link to={currentStage.href} className="mt-6 block">
+                <Button className="w-full justify-between bg-teal-500 hover:bg-teal-600 text-slate-950">
+                  <span>Continue {currentStage.label}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
               </Link>
             </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <ProfileMetric label="Academics" value={getAcademicStrength(profileCenter.profile)} subtitle="Qualification, GPA, major" />
-              <ProfileMetric label="Documents" value={getDocumentStrength(profileCenter.documents)} subtitle="Upload and review progress" />
-              <ProfileMetric label="Test scores" value={getScoreStrength(profileCenter.profile)} subtitle="IELTS, TOEFL, GRE, GMAT" />
+          </Card>
+
+          {/* 3. Profile Completion Bar */}
+          <Card hover={false}>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Profile Readiness</p>
+              <span className="text-lg font-bold text-[#0a2540] dark:text-white">{profileStrength}%</span>
             </div>
-            <div className="mt-6 rounded-2xl bg-gradient-to-br from-[#0a2540] to-[#173b5c] p-5 text-white">
-              <p className="text-sm text-slate-300">Current study target</p>
-              <p className="mt-2 text-2xl font-semibold tracking-tight">{profileCenter.profile?.preferences?.field_of_interest || 'Computer Science'} {profileCenter.profile?.preferences?.target_level || 'PG'}</p>
-              <div className="mt-5 rounded-2xl border border-white/10 bg-white/10 p-4 text-sm font-medium text-slate-100">
-                Next action: {missingDocs > 0 ? `Upload ${missingDocs} missing document${missingDocs > 1 ? 's' : ''}` : 'Compare recommended colleges and refine budget.'}
-              </div>
+            <ProgressBar value={profileStrength} max={100} animated={false} />
+            
+            <div className="mt-6 space-y-3">
+              {profileGaps.slice(0, 3).map((gap, i) => (
+                <div key={i} className="flex items-center justify-between rounded-xl bg-slate-50 p-3 dark:bg-slate-900">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{gap}</p>
+                  </div>
+                  <Link to="/profile-enhancer">
+                    <span className="text-xs font-semibold text-[#635bff] hover:underline">Fix now</span>
+                  </Link>
+                </div>
+              ))}
+              {profileGaps.length === 0 && (
+                <div className="flex items-center gap-3 rounded-xl bg-emerald-50 p-3 dark:bg-emerald-900/20">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Profile is fully optimized for applications.</p>
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
+
+        {/* Main Grid Widgets */}
+        <div className="grid gap-6 lg:grid-cols-3 mb-8">
+          {/* 4. Financial Stress Score */}
+          <Card hover={false} className="lg:col-span-1">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[#0a2540] dark:text-white">Financial Stress</h3>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${getStressColor(financialStress)}`}>
+                {stressBand}
+              </span>
+            </div>
+            <div className="flex items-end gap-2 mb-6">
+              <span className="text-5xl font-bold tracking-tight text-[#0a2540] dark:text-white">{financialStress}</span>
+              <span className="text-slate-500 mb-1">/ 100</span>
+            </div>
+            <div className="space-y-4">
+              <FactorBar label="Loan-to-Salary Ratio" value={65} color="bg-[#635bff]" />
+              <FactorBar label="Scholarship Coverage" value={30} color="bg-teal-400" />
+              <FactorBar label="Repayment Runway" value={80} color="bg-emerald-400" />
             </div>
           </Card>
 
-          <Card hover={false}>
-            <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#0a2540] dark:text-white">Smart alerts</h2>
+          {/* 5. Loan Tracker */}
+          <Card hover={false} className="lg:col-span-1">
+            <h3 className="text-lg font-semibold text-[#0a2540] dark:text-white mb-4">Loan Tracker</h3>
+            <div className="rounded-2xl bg-slate-50 p-5 dark:bg-slate-900 mb-4">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Outstanding Balance</p>
+              <p className="text-3xl font-bold tracking-tight text-[#0a2540] dark:text-white mt-1">₹{loanEstimate.toLocaleString()}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+                <p className="text-xs text-slate-500">Next EMI</p>
+                <p className="font-semibold mt-1">₹47,869</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+                <p className="text-xs text-slate-500">Remaining</p>
+                <p className="font-semibold mt-1">112 mos</p>
+              </div>
+            </div>
+            <Link to="/emi-calculator" className="mt-4 block">
+              <Button variant="outline" className="w-full">Model Repayment</Button>
+            </Link>
+          </Card>
+
+          {/* 9. Upcoming Alerts */}
+          <Card hover={false} className="lg:col-span-1">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[#0a2540] dark:text-white">Alerts & Reminders</h3>
+              <Badge variant="danger">{workspaceAlerts.length} Action{workspaceAlerts.length !== 1 && 's'}</Badge>
+            </div>
             <div className="space-y-3">
-              {workspaceAlerts.slice(0, 4).map((alert) => (
-                <div key={alert.id} className="flex items-start gap-3 rounded-2xl border border-slate-200/70 bg-white/60 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-                  <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />
+              {workspaceAlerts.slice(0, 3).map((alert) => (
+                <div key={alert.id} className="flex gap-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-900">
+                  <div className={`mt-0.5 shrink-0 ${alert.severity === 'high' ? 'text-red-500' : alert.severity === 'medium' ? 'text-amber-500' : 'text-blue-500'}`}>
+                    <Bell className="h-4 w-4" />
+                  </div>
                   <div>
                     <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{alert.title}</p>
-                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{alert.detail}</p>
+                    <p className="mt-0.5 text-xs text-slate-500 line-clamp-1">{alert.detail}</p>
+                  </div>
+                </div>
+              ))}
+              {!workspaceAlerts.length && (
+                <p className="text-sm text-slate-500">You are all caught up!</p>
+              )}
+            </div>
+            <Link to="/alerts" className="mt-4 block text-center text-sm font-semibold text-[#635bff]">View All Alerts</Link>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* 6. Saved Colleges */}
+          <Card hover={false} className="lg:col-span-1">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[#0a2540] dark:text-white">Saved Colleges</h3>
+              <Link to="/college-finder" className="text-sm font-semibold text-[#635bff]">View All</Link>
+            </div>
+            <div className="space-y-3">
+              {saved.length ? saved.map((college) => (
+                <div key={college.id} className="flex items-center justify-between rounded-xl border border-slate-200 p-3 dark:border-slate-800">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-[#0a2540] dark:text-white">{college.university}</p>
+                    <p className="truncate text-xs text-slate-500">{college.course}</p>
+                  </div>
+                  <div className="ml-3 flex shrink-0 flex-col items-end">
+                    <div className="flex items-center gap-1 text-xs font-bold text-emerald-600">
+                      <Target className="h-3 w-3" /> {college.admissionProbability}%
+                    </div>
+                    <span className="mt-1 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                      {String(college.applicationStatus || 'saved').replaceAll('_', ' ')}
+                    </span>
+                  </div>
+                </div>
+              )) : (
+                <p className="text-sm text-slate-500">No colleges saved yet. Explore finder to shortlist.</p>
+              )}
+            </div>
+          </Card>
+
+          {/* 7. Matched Scholarships */}
+          <Card hover={false} className="lg:col-span-1">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[#0a2540] dark:text-white">Matched Funds</h3>
+              <Trophy className="h-5 w-5 text-amber-500" />
+            </div>
+            <div className="space-y-3">
+              {matchedScholarships.map((s) => (
+                <div key={s.id} className="rounded-xl border border-slate-200 p-3 dark:border-slate-800">
+                  <div className="flex justify-between items-start mb-1">
+                    <p className="text-sm font-semibold text-[#0a2540] dark:text-white">{s.name}</p>
+                    <span className="text-xs font-bold text-teal-600">{s.amount}</span>
+                  </div>
+                  <p className="text-xs text-slate-500">{s.sponsor}</p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full dark:bg-amber-500/10">
+                      {s.deadline} days left
+                    </span>
+                    <button className="text-xs font-semibold text-[#635bff] hover:underline">Apply Now</button>
                   </div>
                 </div>
               ))}
             </div>
           </Card>
+
         </div>
 
-        <div className="mb-8 grid gap-6 lg:grid-cols-3">
-          <div className="space-y-8 lg:col-span-2">
-            <Card hover={false} className="overflow-hidden">
-              <div className="mb-6 flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-semibold tracking-[-0.025em] text-[#0a2540] dark:text-white">Best match right now</h2>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Personalized from study preferences, budget, and uploaded evidence.</p>
-                </div>
-                <Badge variant="success">{recommended[0]?.admissionProbability || 0}% chance</Badge>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-[1fr_0.8fr]">
-                <div className="rounded-2xl bg-gradient-to-br from-[#0a2540] to-[#173b5c] p-5 text-white">
-                  <p className="text-sm text-slate-300">Recommended college</p>
-                  <p className="mt-2 text-2xl font-semibold tracking-tight">{recommended[0]?.university || 'University recommendation pending'}</p>
-                  <p className="mt-2 text-sm text-slate-300">{recommended[0]?.course || 'Complete profile fields for more precise matches.'}</p>
-                  <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-4 text-sm font-medium text-slate-100">
-                    Estimated total cost: Rs {recommended[0] ? recommended[0].feesLakhs + recommended[0].livingLakhs : 0}L
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 dark:border-slate-800 dark:bg-slate-950/40">
-                  <ProgressBar label="Admission probability" value={recommended[0]?.admissionProbability || 0} max={100} animated={false} />
-                  <Link to="/college-finder" className="mt-6 block">
-                    <Button variant="outline" className="w-full">Open college finder</Button>
-                  </Link>
-                </div>
-              </div>
-            </Card>
-
-            <Card hover={false}>
-              <h2 className="mb-6 text-2xl font-semibold tracking-[-0.025em] text-[#0a2540] dark:text-white">Financial outlook</h2>
-              <div className="grid gap-4 md:grid-cols-3">
-                <FinancialMetric label="Loan estimate" value="Rs 45.0L" subtitle="Based on target shortlist" />
-                <FinancialMetric label="Monthly EMI" value="Rs 47,869" subtitle="9.5% for 120 months" />
-                <FinancialMetric label="Stress score" value={`${financialStress}/100`} subtitle="Profile and budget adjusted" />
-              </div>
-              <Link to="/emi-calculator" className="mt-6 inline-flex">
-                <Button variant="outline">Open repayment simulator</Button>
-              </Link>
-            </Card>
-          </div>
-
-          <div className="space-y-8">
-            <Card hover={false}>
-              <h2 className="mb-4 text-xl font-bold">Quick actions</h2>
-              <div className="space-y-3">
-                {quickActions.map((action) => {
-                  const Icon = action.icon
-                  return (
-                    <Link key={action.title} to={action.href} className="block">
-                      <div className="group flex items-start gap-3 rounded-2xl border border-slate-200/70 bg-white/50 p-3 hover:bg-white hover:shadow-sm dark:border-slate-800 dark:bg-slate-950/30 dark:hover:bg-slate-900">
-                        <div className="rounded-xl bg-[#635bff]/10 p-2 text-[#635bff]">
-                          <Icon className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold group-hover:text-sky-600">{action.title}</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">{action.description}</p>
-                        </div>
-                      </div>
-                    </Link>
-                  )
-                })}
-              </div>
-            </Card>
-
-            <Card hover={false}>
-              <h2 className="mb-4 text-xl font-bold">Recent activity</h2>
-              <div className="space-y-3">
-                {recentActivities.map((activity) => (
-                  <div key={activity.action} className="flex items-start gap-3 rounded-2xl bg-white/60 p-3 ring-1 ring-slate-200/70 dark:bg-slate-950/40 dark:ring-slate-800">
-                    <span className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700">
-                      {activity.label}
-                    </span>
-                    <div>
-                      <p className="text-sm font-medium">{activity.action}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            <Card hover={false}>
-              <h2 className="mb-4 text-xl font-bold">Application tracker</h2>
-              <div className="space-y-3">
-                {shortlist.length ? shortlist.slice(0, 4).map((item) => (
-                  <div key={item.collegeId} className="rounded-2xl bg-white/60 p-3 ring-1 ring-slate-200/70 dark:bg-slate-950/40 dark:ring-slate-800">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{item.university}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{item.course}</p>
-                    <div className="mt-2 inline-flex rounded-full bg-[#635bff]/10 px-2.5 py-1 text-[11px] font-semibold text-[#635bff]">
-                      {String(item.applicationStatus || 'saved').replaceAll('_', ' ')}
-                    </div>
-                  </div>
-                )) : (
-                  <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-slate-900">Save colleges from the finder to start managing application status.</p>
-                )}
-              </div>
-            </Card>
-
-            <Card hover={false} className="border-[#635bff]/20 bg-[#635bff]/[0.06] dark:border-[#635bff]/30 dark:bg-[#635bff]/10">
-              <h2 className="mb-3 flex items-center gap-2 text-xl font-bold"><ShieldCheck className="h-5 w-5 text-[#635bff]" /> AI insight</h2>
-              <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">
-                {profileStrength >= 75
-                  ? 'Your profile is strong enough to unlock more selective programs. Add final financial documents to tighten scholarship and affordability guidance.'
-                  : 'Completing profile fields and missing documents will improve recommendation quality, loan estimates, and admission probability scoring.'}
-              </p>
-              <Link to="/profile-enhancer" className="mt-4 block">
-                <Button size="sm" className="w-full">Improve profile</Button>
-              </Link>
-            </Card>
-          </div>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <DashboardCollegeSection title="Recommended colleges" items={recommended} empty="Recommendations will appear after profile setup." />
-          <DashboardCollegeSection title="Saved colleges" items={saved} empty="Save colleges from the finder to build a shortlist." />
-          <DashboardCollegeSection title="Recently viewed" items={recent} empty="Official website visits and applications will appear here." />
-        </div>
       </div>
     </div>
   )
 }
 
-function DashboardCollegeSection({ title, items, empty }) {
+function FactorBar({ label, value, color }) {
   return (
-    <Card hover={false}>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold tracking-tight text-[#0a2540] dark:text-white">{title}</h2>
-        <Link to="/college-finder" className="text-xs font-semibold text-[#635bff]">Open finder</Link>
+    <div>
+      <div className="flex justify-between text-xs mb-1">
+        <span className="font-medium text-slate-600 dark:text-slate-400">{label}</span>
+        <span className="font-bold text-slate-900 dark:text-white">{value}%</span>
       </div>
-      {items.length ? (
-        <div className="space-y-3">
-          {items.map((college) => (
-            <Link key={college.id} to="/college-finder" className="block rounded-2xl border border-slate-200/70 bg-white/60 p-4 hover:bg-white hover:shadow-sm dark:border-slate-800 dark:bg-slate-950/40">
-              <div className="flex items-start gap-3">
-                <div className="rounded-xl bg-[#635bff]/10 p-2 text-[#635bff]">
-                  <GraduationCap className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{college.university}</p>
-                  <p className="truncate text-xs text-slate-500">{college.course}</p>
-                  <div className="mt-2 flex items-center justify-between text-xs">
-                    <span>Rs {getTotalCost(college)}L total</span>
-                    <span className="font-semibold text-emerald-600">
-                      {college.applicationStatus
-                        ? college.applicationStatus.replaceAll('_', ' ')
-                        : `${college.admissionProbability}% fit`}
-                    </span>
-                  </div>
-                </div>
-                <ArrowRight className="h-4 w-4 text-slate-400" />
-              </div>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-slate-900">{empty}</p>
-      )}
-    </Card>
-  )
-}
-
-function ProfileMetric({ label, value, subtitle }) {
-  return (
-    <div className="rounded-2xl border border-slate-200/70 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-      <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{label}</p>
-      <p className="mt-2 text-2xl font-semibold tracking-tight">{value}%</p>
-      <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
-    </div>
-  )
-}
-
-function FinancialMetric({ label, value, subtitle }) {
-  return (
-    <div className="rounded-2xl bg-white/70 p-4 ring-1 ring-slate-200/70 dark:bg-slate-950/40 dark:ring-slate-800">
-      <p className="text-xs uppercase tracking-[0.16em] text-slate-400">{label}</p>
-      <p className="mt-2 text-xl font-semibold tracking-tight">{value}</p>
-      <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+      <div className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+        <div className={`h-full ${color}`} style={{ width: `${value}%` }} />
+      </div>
     </div>
   )
 }

@@ -5,3 +5,5 @@ backend/node_modules
 .env
 .DS_Store
 dist
+
+node-v20.11.1-win-x64/
