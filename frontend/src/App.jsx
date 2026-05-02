@@ -17,6 +17,7 @@ import VisaPredictor from './pages/VisaPredictor'
 import MentorshipMarketplace from './pages/MentorshipMarketplace'
 import SmartLivingAssistant from './pages/SmartLivingAssistant'
 import ProfileEnhancer from './pages/ProfileEnhancer'
+import CollegeFinder from './pages/CollegeFinder'
 
 export default function App() {
   const isDarkMode = useThemeStore((state) => state.isDarkMode)
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/emi-calculator" element={<EMICalculator />} />
             <Route path="/career-discovery" element={<CareerDiscovery />} />
+            <Route path="/college-finder" element={<CollegeFinder />} />
             <Route path="/progress" element={<ProgressTracker />} />
             <Route path="/visa-predictor" element={<VisaPredictor />} />
             <Route path="/mentorship" element={<MentorshipMarketplace />} />

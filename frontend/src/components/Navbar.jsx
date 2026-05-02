@@ -16,11 +16,13 @@ export default function Navbar() {
 
   const navLinks = isAuthenticated ? [
     { label: 'Dashboard', href: '/dashboard' },
-    { label: 'EMI Calculator', href: '/emi-calculator' },
-    { label: 'Career Path', href: '/career-discovery' },
+    { label: 'College Finder', href: '/college-finder' },
+    { label: 'EMI', href: '/emi-calculator' },
+    { label: 'Career', href: '/career-discovery' },
     { label: 'Progress', href: '/progress' },
   ] : [
     { label: 'Features', href: '#features' },
+    { label: 'Finder', href: '/college-finder' },
     { label: 'About', href: '#about' },
     { label: 'Contact', href: '#contact' },
   ]

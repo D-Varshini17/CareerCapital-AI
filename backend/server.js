@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.js'
 import userRoutes from './routes/user.js'
 import financialRoutes from './routes/financial.js'
 import aiRoutes from './routes/ai.js'
+import collegeRoutes from './routes/colleges.js'
 
 const app = express()
 
@@ -20,6 +21,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/financial', financialRoutes)
 app.use('/api/ai', aiRoutes)
+app.use('/api/colleges', collegeRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {

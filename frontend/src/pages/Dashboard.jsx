@@ -1,12 +1,18 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Calendar, DollarSign, LineChart, Target, TrendingUp, Zap } from 'lucide-react'
+import { ArrowRight, Calendar, DollarSign, GraduationCap, LineChart, Search, Target, TrendingUp, Zap } from 'lucide-react'
 import { Badge, Button, Card, ProgressBar, StatCard } from '../components'
+import SmartSearchBar from '../components/SmartSearchBar'
+import { colleges } from '../data/colleges'
 import { useAuthStore } from '../store'
+import { useCollegeStore } from '../store'
+import { filterAndRankColleges, getTotalCost } from '../utils/collegeSearch'
 
 export default function Dashboard() {
   const user = useAuthStore((state) => state.user)
+  const { savedCollegeIds, recentlyViewedIds } = useCollegeStore()
+  const [dashboardSearch, setDashboardSearch] = React.useState('')
 
   const dashboardData = {
     career: {
@@ -42,6 +48,18 @@ export default function Dashboard() {
   ]
 
   const utilized = dashboardData.loan.total - dashboardData.loan.available
+  const recommended = filterAndRankColleges(colleges, 'Canada MS data science high roi', {
+    country: 'All',
+    courseType: 'All',
+    field: 'All',
+    maxBudget: 70,
+    ieltsRequired: 'Any',
+    greRequired: 'Any',
+    universityType: 'All',
+    scholarship: 'Any',
+  }).slice(0, 3)
+  const saved = colleges.filter((college) => savedCollegeIds.includes(college.id)).slice(0, 3)
+  const recent = recentlyViewedIds.map((id) => colleges.find((college) => college.id === id)).filter(Boolean).slice(0, 3)
 
   return (
     <div className="min-h-screen soft-grid py-10 pb-24">
@@ -62,6 +80,22 @@ export default function Dashboard() {
             </Link>
           </div>
         </motion.div>
+
+        <div className="mb-8 rounded-[1.75rem] border border-white/70 bg-white/75 p-4 shadow-[0_20px_70px_rgba(10,37,64,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/70">
+          <div className="mb-3 flex items-center gap-2 px-2 text-sm font-semibold text-[#0a2540] dark:text-white">
+            <Search className="h-4 w-4 text-[#635bff]" />
+            Global smart search
+          </div>
+          <SmartSearchBar
+            value={dashboardSearch}
+            onChange={setDashboardSearch}
+            onSubmit={(value) => {
+              const encoded = encodeURIComponent(value || '')
+              window.location.href = `/college-finder?q=${encoded}`
+            }}
+            compact
+          />
+        </div>
 
         <div className="mb-8 grid gap-5 md:grid-cols-4">
           <StatCard label="Career Progress" value={dashboardData.career.progress} unit="%" icon={Target} trend="+5% this month" />
@@ -169,7 +203,48 @@ export default function Dashboard() {
             </Card>
           </div>
         </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <DashboardCollegeSection title="Recommended colleges" items={recommended} empty="Recommendations will appear after profile setup." />
+          <DashboardCollegeSection title="Saved colleges" items={saved} empty="Save colleges from the finder to build a shortlist." />
+          <DashboardCollegeSection title="Recently viewed" items={recent} empty="Official website visits and applications will appear here." />
+        </div>
       </div>
     </div>
+  )
+}
+
+function DashboardCollegeSection({ title, items, empty }) {
+  return (
+    <Card hover={false}>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold tracking-tight text-[#0a2540] dark:text-white">{title}</h2>
+        <Link to="/college-finder" className="text-xs font-semibold text-[#635bff]">Open finder</Link>
+      </div>
+      {items.length ? (
+        <div className="space-y-3">
+          {items.map((college) => (
+            <Link key={college.id} to="/college-finder" className="block rounded-2xl border border-slate-200/70 bg-white/60 p-4 hover:bg-white hover:shadow-sm dark:border-slate-800 dark:bg-slate-950/40">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-[#635bff]/10 p-2 text-[#635bff]">
+                  <GraduationCap className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{college.university}</p>
+                  <p className="truncate text-xs text-slate-500">{college.course}</p>
+                  <div className="mt-2 flex items-center justify-between text-xs">
+                    <span>Rs {getTotalCost(college)}L total</span>
+                    <span className="font-semibold text-emerald-600">{college.admissionProbability}% fit</span>
+                  </div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-slate-400" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-slate-900">{empty}</p>
+      )}
+    </Card>
   )
 }
