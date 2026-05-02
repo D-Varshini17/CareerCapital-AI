@@ -6,13 +6,14 @@ export function PageHeader({ eyebrow, title, description, actions = null }) {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mb-8 flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 dark:border-slate-800 lg:flex-row lg:items-end"
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="mb-10 flex flex-col justify-between gap-5 border-b border-slate-200/70 pb-7 dark:border-slate-800/80 lg:flex-row lg:items-end"
     >
       <div>
         {eyebrow && <p className="section-kicker mb-3">{eyebrow}</p>}
-        <h1 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-4xl">{title}</h1>
+        <h1 className="max-w-4xl text-3xl font-semibold tracking-[-0.035em] text-slate-950 dark:text-white sm:text-4xl">{title}</h1>
         {description && (
-          <p className="mt-3 max-w-3xl text-slate-600 dark:text-slate-300">{description}</p>
+          <p className="mt-4 max-w-3xl text-[15px] leading-7 text-slate-600 dark:text-slate-300">{description}</p>
         )}
       </div>
       {actions && <div className="flex flex-wrap gap-3">{actions}</div>}
@@ -23,8 +24,8 @@ export function PageHeader({ eyebrow, title, description, actions = null }) {
 export function Card({ children, className = '', hover = true, ...props }) {
   return (
     <motion.div
-      whileHover={hover ? { y: -3 } : {}}
-      className={`glass dark:glass-dark rounded-lg p-6 ${className}`}
+      whileHover={hover ? { y: -4, transition: { duration: 0.2 } } : {}}
+      className={`glass dark:glass-dark rounded-2xl p-6 ${className}`}
       {...props}
     >
       {children}
@@ -39,12 +40,12 @@ export function Button({
   className = '',
   ...props
 }) {
-  const baseClass = 'inline-flex items-center justify-center rounded-lg font-semibold transition-all focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-offset-slate-950'
+  const baseClass = 'inline-flex items-center justify-center rounded-full font-semibold tracking-[-0.01em] transition-all focus:ring-2 focus:ring-[#635bff] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-offset-slate-950'
 
   const variants = {
-    primary: 'bg-slate-950 text-white shadow-sm hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200',
-    secondary: 'bg-slate-100 text-slate-950 hover:bg-slate-200 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700',
-    outline: 'border border-slate-300 bg-white text-slate-900 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-900',
+    primary: 'bg-[#0a2540] text-white shadow-[0_12px_30px_rgba(10,37,64,0.20)] hover:-translate-y-0.5 hover:bg-[#173b5c] dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200',
+    secondary: 'bg-white/70 text-slate-950 ring-1 ring-slate-200 hover:bg-white dark:bg-slate-800 dark:text-white dark:ring-slate-700 dark:hover:bg-slate-700',
+    outline: 'border border-slate-300/80 bg-white/65 text-slate-900 hover:border-[#635bff]/50 hover:bg-white dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:hover:bg-slate-900',
     ghost: 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800',
     danger: 'bg-red-600 text-white hover:bg-red-700',
   }
@@ -52,7 +53,7 @@ export function Button({
   const sizes = {
     sm: 'px-3 py-1.5 text-sm',
     md: 'px-4 py-2.5 text-sm',
-    lg: 'px-5 py-3 text-base',
+    lg: 'px-6 py-3.5 text-[15px]',
   }
 
   return (
@@ -69,7 +70,7 @@ export function Button({
 
 export function Badge({ children, variant = 'primary', className = '' }) {
   const variants = {
-    primary: 'bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:ring-sky-900',
+    primary: 'bg-white/70 text-[#635bff] ring-[#635bff]/20 dark:bg-sky-950/60 dark:text-sky-300 dark:ring-sky-900',
     success: 'bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-900',
     warning: 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-900',
     danger: 'bg-red-50 text-red-700 ring-red-200 dark:bg-red-950/50 dark:text-red-300 dark:ring-red-900',

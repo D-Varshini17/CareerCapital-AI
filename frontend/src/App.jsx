@@ -32,7 +32,7 @@ export default function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.10),transparent_30%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] text-slate-900 dark:bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.14),transparent_28%),linear-gradient(180deg,#020617_0%,#0f172a_100%)] dark:text-white">
+      <div className="mesh-bg min-h-screen text-slate-900 dark:text-white">
         <Navbar />
         <main className="flex-1">
           <Routes>
