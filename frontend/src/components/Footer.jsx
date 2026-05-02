@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Facebook, Twitter, Linkedin, Instagram, Mail, MapPin, Phone } from 'lucide-react'
+import { Facebook, Twitter, Linkedin, Instagram } from 'lucide-react'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -22,7 +22,6 @@ export default function Footer() {
         { label: 'About', href: '#about' },
         { label: 'Blog', href: '#blog' },
         { label: 'Careers', href: '#careers' },
-        { label: 'Contact', href: '#contact' },
       ],
     },
     {
@@ -45,7 +44,7 @@ export default function Footer() {
   return (
     <footer className="bg-slate-900 dark:bg-black text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
@@ -83,32 +82,6 @@ export default function Footer() {
             </motion.div>
           ))}
 
-          {/* Contact */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <h4 className="font-semibold mb-4">Contact</h4>
-            <div className="space-y-3 text-sm text-slate-400">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                <a href="mailto:hello@careercapital.ai" className="hover:text-sky-400 transition-colors">
-                  hello@careercapital.ai
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                <a href="tel:+919876543210" className="hover:text-sky-400 transition-colors">
-                  +91 98765 43210
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                <span>Bangalore, India</span>
-              </div>
-            </div>
-          </motion.div>
         </div>
 
         {/* Divider */}

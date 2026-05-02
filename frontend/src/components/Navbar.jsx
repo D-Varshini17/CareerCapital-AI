@@ -24,7 +24,6 @@ export default function Navbar() {
     { label: 'Features', href: '#features' },
     { label: 'Finder', href: '/college-finder' },
     { label: 'About', href: '#about' },
-    { label: 'Contact', href: '#contact' },
   ]
 
   return (
