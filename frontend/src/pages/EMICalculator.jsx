@@ -1,33 +1,47 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { ArrowUpRight, Calendar, DollarSign, TrendingDown } from 'lucide-react'
+import { ArrowRightLeft, ArrowUpRight, Calendar, DollarSign, Search, TrendingDown } from 'lucide-react'
 import { Badge, Button, Card, PageHeader, StatCard } from '../components'
 import { financialService } from '../services/api'
 import { calculateEarlyPaymentBenefit, calculateEMI, formatCurrency, formatNumber, generateAmortizationSchedule } from '../utils/financial'
 
 const repaymentTips = [
   {
-    title: 'Use one planned extra payment each year',
-    description: 'If your budget allows, one additional payment in a year can reduce the balance earlier and ease the long-term interest burden.',
+    title: 'Plan one extra payment during the year',
+    description: 'A single extra payment can help reduce the balance earlier and soften the overall interest burden.',
   },
   {
-    title: 'Prioritize early prepayment when possible',
-    description: 'Extra payments made in the earlier months usually have a bigger effect because that is when the interest share is highest.',
+    title: 'Make prepayments earlier if possible',
+    description: 'Early-stage extra payments usually help more because a larger share of the EMI is going toward interest then.',
   },
   {
-    title: 'Check whether a shorter tenure fits your income',
-    description: 'A slightly higher monthly commitment can sometimes save a large amount overall if it reduces the number of repayment years.',
+    title: 'Compare shorter tenure against monthly comfort',
+    description: 'Sometimes a slightly higher EMI is worth it if it saves a meaningful amount across the full loan period.',
   },
   {
-    title: 'Watch the interest-principal split',
-    description: 'Understanding how much of each EMI goes to interest helps you decide when prepayment will be most effective.',
+    title: 'Track interest versus principal',
+    description: 'Understanding the split helps you decide when prepayment makes the biggest difference.',
   },
+]
+
+const currencyOptions = [
+  { code: 'INR', label: 'India', symbol: 'Rs', rate: 1 },
+  { code: 'CAD', label: 'Canada', symbol: 'C$', rate: 61.2 },
+  { code: 'USD', label: 'United States', symbol: '$', rate: 83.5 },
+  { code: 'GBP', label: 'United Kingdom', symbol: 'GBP', rate: 104.4 },
+  { code: 'EUR', label: 'Europe', symbol: 'EUR', rate: 90.8 },
+  { code: 'AUD', label: 'Australia', symbol: 'A$', rate: 55.1 },
+  { code: 'SGD', label: 'Singapore', symbol: 'S$', rate: 61.8 },
+  { code: 'CHF', label: 'Switzerland', symbol: 'CHF', rate: 93.6 },
 ]
 
 export default function EMICalculator() {
   const [formData, setFormData] = useState({ principal: 5000000, rate: 9.5, tenure: 120, extraPayment: 0 })
   const [showSchedule, setShowSchedule] = useState(false)
   const [bankPlans, setBankPlans] = useState([])
+  const [bankSearch, setBankSearch] = useState('')
+  const [selectedCurrency, setSelectedCurrency] = useState('CAD')
+  const [conversionAmount, setConversionAmount] = useState(1000000)
   const handleChange = (e) => setFormData((prev) => ({ ...prev, [e.target.name]: parseFloat(e.target.value) || 0 }))
 
   const emi = calculateEMI(formData.principal, formData.rate, formData.tenure)
@@ -37,6 +51,16 @@ export default function EMICalculator() {
   const schedule = useMemo(() => generateAmortizationSchedule(formData.principal, formData.rate, formData.tenure), [formData.principal, formData.rate, formData.tenure])
   const chartData = useMemo(() => schedule.slice(0, Math.min(60, schedule.length)), [schedule])
   const splitData = [{ name: 'Principal', value: formData.principal, fill: '#0ea5e9' }, { name: 'Interest', value: totalInterest, fill: '#f97316' }]
+  const currencyMeta = currencyOptions.find((item) => item.code === selectedCurrency) || currencyOptions[1]
+  const convertedFromRupees = conversionAmount / currencyMeta.rate
+  const convertedToRupees = conversionAmount * currencyMeta.rate
+  const filteredBankPlans = useMemo(() => {
+    const q = bankSearch.trim().toLowerCase()
+    if (!q) return bankPlans
+    return bankPlans.filter((plan) =>
+      `${plan.bank} ${plan.planName} ${plan.providerType}`.toLowerCase().includes(q)
+    )
+  }, [bankPlans, bankSearch])
 
   useEffect(() => {
     financialService.getBankPlans({
@@ -86,16 +110,88 @@ export default function EMICalculator() {
           </div>
         </Card>
 
+        <div className="mb-8 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+          <Card hover={false}>
+            <div className="mb-5 flex items-center gap-3">
+              <div className="rounded-2xl bg-[#635bff]/10 p-3 text-[#635bff]">
+                <DollarSign className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">Repayment strategy tips</h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Small planning moves that usually help students borrow more safely.</p>
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {repaymentTips.map((tip) => (
+                <div key={tip.title} className="rounded-2xl border border-slate-200/70 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                  <p className="text-base font-semibold text-slate-900 dark:text-white">{tip.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{tip.description}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card hover={false}>
+            <div className="mb-5 flex items-center gap-3">
+              <div className="rounded-2xl bg-emerald-500/10 p-3 text-emerald-600">
+                <ArrowRightLeft className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">Currency converter</h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Compare your budget in rupees and destination-country currency.</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold">Country / currency</span>
+                <select value={selectedCurrency} onChange={(e) => setSelectedCurrency(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-900">
+                  {currencyOptions.map((item) => (
+                    <option key={item.code} value={item.code}>{item.label} ({item.code})</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold">Amount</span>
+                <input type="number" value={conversionAmount} onChange={(e) => setConversionAmount(Number(e.target.value) || 0)} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-900" />
+              </label>
+              <div className="grid gap-3">
+                <div className="rounded-2xl border border-slate-200/70 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                  <p className="text-xs uppercase tracking-[0.16em] text-slate-400">From Rupees</p>
+                  <p className="mt-2 text-xl font-semibold text-slate-900 dark:text-white">
+                    Rs {formatNumber(conversionAmount)} = {currencyMeta.symbol} {convertedFromRupees.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-slate-200/70 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                  <p className="text-xs uppercase tracking-[0.16em] text-slate-400">To Rupees</p>
+                  <p className="mt-2 text-xl font-semibold text-slate-900 dark:text-white">
+                    {currencyMeta.symbol} {formatNumber(conversionAmount)} = Rs {convertedToRupees.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+
         <Card hover={false} className="mb-8">
           <div className="mb-5 flex items-start justify-between gap-4">
             <div>
               <h2 className="text-2xl font-bold">Banks and loan plans</h2>
               <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Ranked loan options for your current funding need with tenure, moratorium, and pricing context.</p>
             </div>
-            <Badge variant="success">{bankPlans.length} plans</Badge>
+            <Badge variant="success">{filteredBankPlans.length} plans</Badge>
+          </div>
+          <div className="mb-5 relative">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={bankSearch}
+              onChange={(e) => setBankSearch(e.target.value)}
+              placeholder="Search banks or loan plans"
+              className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm outline-none focus:ring-2 focus:ring-[#635bff]/30 dark:border-slate-700 dark:bg-slate-900"
+            />
           </div>
           <div className="grid gap-4 xl:grid-cols-2">
-            {bankPlans.map((plan) => (
+            {filteredBankPlans.map((plan) => (
               <div key={plan.id} className="rounded-2xl border border-slate-200/70 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -122,6 +218,11 @@ export default function EMICalculator() {
               </div>
             ))}
           </div>
+          {!filteredBankPlans.length && (
+            <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+              No bank plans matched your search. Try a bank name like `SBI`, `Axis`, `ICICI`, or `Credila`.
+            </div>
+          )}
         </Card>
 
         <div className="mb-8 grid gap-6 md:grid-cols-4">
@@ -130,31 +231,6 @@ export default function EMICalculator() {
           <StatCard label="Total Payment" value={totalPayment} unit="Rs" icon={Calendar} />
           <StatCard label="Loan Duration" value={formData.tenure} unit="months" icon={Calendar} trend={`${(formData.tenure / 12).toFixed(1)} years`} />
         </div>
-
-        <section className="mb-8 overflow-hidden rounded-[2rem] bg-[#0f2134] text-white shadow-[0_25px_70px_rgba(15,33,52,0.22)]">
-          <div className="border-t-4 border-teal-500 px-6 py-8 sm:px-8">
-            <div className="max-w-3xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-teal-300">Stage 06</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-white">Smart Repayment Strategy</h2>
-              <p className="mt-3 text-sm leading-7 text-slate-300">
-                Practical repayment tips for students who want to reduce stress, save interest, and choose a healthier loan path.
-              </p>
-            </div>
-
-            <div className="mt-8 grid gap-5 md:grid-cols-2">
-              {repaymentTips.map((tip) => (
-                <div key={tip.title} className="border-l-4 border-amber-300 bg-[#1f4162] px-5 py-6 shadow-[0_12px_30px_rgba(0,0,0,0.14)]">
-                  <h3 className="text-xl font-semibold tracking-tight text-amber-300">{tip.title}</h3>
-                  <p className="mt-4 text-sm leading-7 text-slate-100">{tip.description}</p>
-                </div>
-              ))}
-            </div>
-
-            <p className="mt-7 text-sm font-semibold text-slate-100">
-              Use the simulator below to test EMI changes, extra payments, and payoff timelines before locking your repayment plan.
-            </p>
-          </div>
-        </section>
 
         <div className="mb-8 grid gap-8 lg:grid-cols-2">
           <Card hover={false}>
