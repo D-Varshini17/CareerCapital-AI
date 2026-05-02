@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Zap, Globe, TrendingUp, Star, Check } from 'lucide-react'
-import { Card, Button, Badge, InputField } from '../components'
+import { Briefcase, Check, Globe, GraduationCap, Lightbulb, Zap } from 'lucide-react'
+import { Badge, Button, Card, PageHeader, ProgressBar } from '../components'
 
 export default function CareerDiscovery() {
-  const [step, setStep] = useState(1)
   const [profile, setProfile] = useState({
     gpa: 3.8,
     skills: 'Python, Java, Machine Learning',
@@ -12,135 +11,62 @@ export default function CareerDiscovery() {
   })
 
   const universities = [
-    {
-      rank: 1,
-      name: 'Stanford University',
-      country: '🇺🇸 USA',
-      program: 'MS Computer Science',
-      costYear: 75000,
-      roi: 9.2,
-      match: 95,
-      placement: 98,
-    },
-    {
-      rank: 2,
-      name: 'UC Berkeley',
-      country: '🇺🇸 USA',
-      program: 'MS EECS',
-      costYear: 68000,
-      roi: 9.0,
-      match: 92,
-      placement: 97,
-    },
-    {
-      rank: 3,
-      name: 'University of Toronto',
-      country: '🇨🇦 Canada',
-      program: 'MASc Computer Engineering',
-      costYear: 32000,
-      roi: 8.8,
-      match: 89,
-      placement: 95,
-    },
-    {
-      rank: 4,
-      name: 'ETH Zurich',
-      country: '🇨🇭 Switzerland',
-      program: 'MSc Computer Science',
-      costYear: 20000,
-      roi: 8.9,
-      match: 87,
-      placement: 96,
-    },
+    { rank: 1, name: 'Stanford University', country: 'USA', program: 'MS Computer Science', costYear: 75000, roi: 9.2, match: 95, placement: 98 },
+    { rank: 2, name: 'UC Berkeley', country: 'USA', program: 'MS EECS', costYear: 68000, roi: 9.0, match: 92, placement: 97 },
+    { rank: 3, name: 'University of Toronto', country: 'Canada', program: 'MASc Computer Engineering', costYear: 32000, roi: 8.8, match: 89, placement: 95 },
+    { rank: 4, name: 'ETH Zurich', country: 'Switzerland', program: 'MSc Computer Science', costYear: 20000, roi: 8.9, match: 87, placement: 96 },
   ]
 
   const careers = [
-    { title: 'Software Engineer', match: 96, salary: '$150K-200K', icon: '💻' },
-    { title: 'Data Scientist', match: 94, salary: '$130K-180K', icon: '📊' },
-    { title: 'ML Engineer', match: 93, salary: '$140K-210K', icon: '🤖' },
-    { title: 'Product Manager', match: 85, salary: '$120K-160K', icon: '🎯' },
+    { title: 'Software Engineer', match: 96, salary: '$150K-200K', icon: Briefcase },
+    { title: 'Data Scientist', match: 94, salary: '$130K-180K', icon: Globe },
+    { title: 'ML Engineer', match: 93, salary: '$140K-210K', icon: Zap },
+    { title: 'Product Manager', match: 85, salary: '$120K-160K', icon: GraduationCap },
   ]
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target
-    setProfile((prev) => ({ ...prev, [name]: isNaN(value) ? value : parseFloat(value) }))
+    setProfile((prev) => ({ ...prev, [name]: Number.isNaN(Number(value)) ? value : Number(value) }))
   }
 
   return (
-    <div className="min-h-screen pt-8 pb-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-4xl font-bold mb-2">🎯 AI Career Discovery</h1>
-          <p className="text-slate-600 dark:text-slate-400">
-            Find your perfect career path and university based on your profile
-          </p>
-        </motion.div>
+    <div className="min-h-screen py-8 pb-20">
+      <div className="page-shell max-w-6xl">
+        <PageHeader
+          eyebrow="Career discovery"
+          title="Find career and university options that match your profile."
+          description="Use GPA, skills, budget, and target outcomes to compare career paths and program options in a structured way."
+        />
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Sidebar - Profile */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="lg:col-span-1"
-          >
-            <Card>
-              <h2 className="text-xl font-bold mb-6">Your Profile</h2>
-
-              <div className="space-y-4">
+        <div className="grid gap-8 lg:grid-cols-3">
+          <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-1">
+            <Card hover={false}>
+              <h2 className="mb-6 text-xl font-bold">Profile inputs</h2>
+              <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold mb-2">GPA</label>
-                  <div className="flex gap-2 items-center">
-                    <input
-                      type="range"
-                      name="gpa"
-                      value={profile.gpa}
-                      onChange={handleProfileChange}
-                      min="2.0"
-                      max="4.0"
-                      step="0.1"
-                      className="flex-1 cursor-pointer"
-                    />
-                    <span className="font-bold text-lg">{profile.gpa}</span>
+                  <label className="mb-2 block text-sm font-semibold">GPA</label>
+                  <div className="flex items-center gap-3">
+                    <input type="range" name="gpa" value={profile.gpa} onChange={handleProfileChange} min="2" max="4" step="0.1" className="flex-1" />
+                    <span className="w-10 text-right text-lg font-bold">{profile.gpa}</span>
                   </div>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Budget (Lakhs ₹)</label>
-                  <input
-                    type="number"
-                    name="budget"
-                    value={profile.budget}
-                    onChange={handleProfileChange}
-                    className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none"
-                  />
+                  <label className="mb-2 block text-sm font-semibold">Budget in lakhs</label>
+                  <input name="budget" type="number" value={profile.budget} onChange={handleProfileChange} className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-900" />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Key Skills</label>
-                  <textarea
-                    name="skills"
-                    value={profile.skills}
-                    onChange={handleProfileChange}
-                    rows="3"
-                    className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none"
-                  />
+                  <label className="mb-2 block text-sm font-semibold">Key skills</label>
+                  <textarea name="skills" value={profile.skills} onChange={handleProfileChange} rows="4" className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-900" />
                 </div>
-
-                <Button className="w-full">Analyze Profile</Button>
+                <Button className="w-full">Analyze profile</Button>
               </div>
 
-              {/* Strengths */}
-              <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
-                <h3 className="font-bold mb-4">Your Strengths</h3>
+              <div className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-800">
+                <h3 className="mb-4 font-bold">Strength signals</h3>
                 <ul className="space-y-2">
-                  {['High GPA', 'Diverse Skills', 'Tech Focus'].map((item, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm">
-                      <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  {['High academic score', 'Technical skill base', 'Clear technology focus'].map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-emerald-600" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -149,123 +75,68 @@ export default function CareerDiscovery() {
             </Card>
           </motion.div>
 
-          {/* Main Content */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-2 space-y-8"
-          >
-            {/* Career Recommendations */}
-            <Card>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">💼 Career Matches</h2>
-                <Badge variant="success">Top Picks</Badge>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 lg:col-span-2">
+            <Card hover={false}>
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Career matches</h2>
+                <Badge variant="success">Top picks</Badge>
               </div>
-
               <div className="space-y-4">
-                {careers.map((career, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="p-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-sky-500 dark:hover:border-sky-500 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <span className="text-3xl">{career.icon}</span>
-                        <div>
-                          <h3 className="font-bold">{career.title}</h3>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">
-                            Average salary: {career.salary}
-                          </p>
+                {careers.map((career, idx) => {
+                  const Icon = career.icon
+                  return (
+                    <div key={career.title} className="rounded-lg border border-slate-200 p-4 dark:border-slate-800">
+                      <div className="mb-3 flex items-start justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-lg bg-slate-100 p-2 dark:bg-slate-800">
+                            <Icon className="h-5 w-5 text-sky-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold">{career.title}</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Average salary: {career.salary}</p>
+                          </div>
                         </div>
+                        <Badge>{career.match}% match</Badge>
                       </div>
-                      <Badge variant="primary">{career.match}% Match</Badge>
+                      <ProgressBar value={career.match} max={100} animated={false} />
                     </div>
-
-                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${career.match}%` }}
-                        transition={{ duration: 1 }}
-                        className="h-full bg-gradient-to-r from-sky-500 to-cyan-500 rounded-full"
-                      />
-                    </div>
-                  </motion.div>
-                ))}
+                  )
+                })}
               </div>
             </Card>
 
-            {/* University Recommendations */}
-            <Card>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">🏫 Top Universities for You</h2>
-                <Globe className="w-6 h-6 text-sky-600 dark:text-sky-400" />
+            <Card hover={false}>
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-2xl font-bold">University shortlist</h2>
+                <Globe className="h-6 w-6 text-sky-600" />
               </div>
-
               <div className="space-y-4">
-                {universities.map((uni, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between mb-3">
+                {universities.map((uni) => (
+                  <div key={uni.name} className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="mb-4 flex items-start justify-between gap-4">
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-lg font-bold text-sky-600 dark:text-sky-400">#{uni.rank}</span>
-                          <h3 className="font-bold">{uni.name}</h3>
-                        </div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          {uni.country} • {uni.program}
-                        </p>
+                        <p className="text-sm font-semibold text-sky-600">Rank #{uni.rank}</p>
+                        <h3 className="text-lg font-bold">{uni.name}</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{uni.country} - {uni.program}</p>
                       </div>
-                      <Badge variant="success">{uni.match}% Fit</Badge>
+                      <Badge variant="success">{uni.match}% fit</Badge>
                     </div>
-
-                    <div className="grid grid-cols-4 gap-3 text-center text-sm">
-                      <div className="p-2 bg-white dark:bg-slate-700 rounded-lg">
-                        <p className="text-xs text-slate-600 dark:text-slate-400">Cost/Year</p>
-                        <p className="font-bold">${uni.costYear / 1000}K</p>
-                      </div>
-                      <div className="p-2 bg-white dark:bg-slate-700 rounded-lg">
-                        <p className="text-xs text-slate-600 dark:text-slate-400">ROI Score</p>
-                        <p className="font-bold">{uni.roi}/10</p>
-                      </div>
-                      <div className="p-2 bg-white dark:bg-slate-700 rounded-lg">
-                        <p className="text-xs text-slate-600 dark:text-slate-400">Placement</p>
-                        <p className="font-bold">{uni.placement}%</p>
-                      </div>
-                      <div className="p-2 bg-white dark:bg-slate-700 rounded-lg">
-                        <p className="text-xs text-slate-600 dark:text-slate-400">Rating</p>
-                        <p className="font-bold text-yellow-600">★{uni.roi}</p>
-                      </div>
+                    <div className="grid grid-cols-3 gap-3 text-center text-sm">
+                      <div className="rounded-lg bg-white p-3 dark:bg-slate-950"><p className="text-xs text-slate-500">Cost/year</p><p className="font-bold">${uni.costYear / 1000}K</p></div>
+                      <div className="rounded-lg bg-white p-3 dark:bg-slate-950"><p className="text-xs text-slate-500">ROI score</p><p className="font-bold">{uni.roi}/10</p></div>
+                      <div className="rounded-lg bg-white p-3 dark:bg-slate-950"><p className="text-xs text-slate-500">Placement</p><p className="font-bold">{uni.placement}%</p></div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             </Card>
 
-            {/* Recommendations */}
-            <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
-              <h2 className="text-xl font-bold mb-4">💡 AI Recommendations</h2>
-              <ul className="space-y-2 text-sm">
-                <li className="flex gap-2">
-                  <Zap className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-                  <span>Focus on project portfolio for tech roles</span>
-                </li>
-                <li className="flex gap-2">
-                  <Zap className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-                  <span>Consider Canada programs for better ROI & work permits</span>
-                </li>
-                <li className="flex gap-2">
-                  <Zap className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-                  <span>Plan for ₹35-40L total education + living costs</span>
-                </li>
+            <Card hover={false} className="border-sky-200 bg-sky-50 dark:border-sky-900 dark:bg-sky-950/30">
+              <h2 className="mb-4 flex items-center gap-2 text-xl font-bold"><Lightbulb className="h-5 w-5 text-sky-600" /> Recommendations</h2>
+              <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+                <li>Build a project portfolio for technical roles.</li>
+                <li>Compare Canada programs for ROI and work-permit flexibility.</li>
+                <li>Plan for Rs 35-40L total education and living costs.</li>
               </ul>
             </Card>
           </motion.div>

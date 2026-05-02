@@ -1,409 +1,146 @@
-import React, { useState, useMemo } from 'react'
-import { motion } from 'framer-motion'
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { TrendingDown, DollarSign, Calendar, PiggyBank } from 'lucide-react'
-import { Card, Button, InputField, StatCard, Badge } from '../components'
-import { calculateEMI, calculateEarlyPaymentBenefit, generateAmortizationSchedule, formatCurrency, formatNumber } from '../utils/financial'
+import React, { useMemo, useState } from 'react'
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Calendar, DollarSign, TrendingDown } from 'lucide-react'
+import { Badge, Button, Card, PageHeader, StatCard } from '../components'
+import { calculateEarlyPaymentBenefit, calculateEMI, formatCurrency, formatNumber, generateAmortizationSchedule } from '../utils/financial'
 
 export default function EMICalculator() {
-  const [formData, setFormData] = useState({
-    principal: 5000000,
-    rate: 9.5,
-    tenure: 120,
-    extraPayment: 0,
-  })
+  const [formData, setFormData] = useState({ principal: 5000000, rate: 9.5, tenure: 120, extraPayment: 0 })
   const [showSchedule, setShowSchedule] = useState(false)
+  const handleChange = (e) => setFormData((prev) => ({ ...prev, [e.target.name]: parseFloat(e.target.value) || 0 }))
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: parseFloat(value) || 0,
-    }))
-  }
-
-  // Calculations
   const emi = calculateEMI(formData.principal, formData.rate, formData.tenure)
-  const totalInterest = (emi * formData.tenure) - formData.principal
+  const totalInterest = emi * formData.tenure - formData.principal
   const totalPayment = emi * formData.tenure
-
-  const optimization = useMemo(() => {
-    if (formData.extraPayment > 0) {
-      return calculateEarlyPaymentBenefit(
-        formData.principal,
-        formData.rate,
-        formData.tenure,
-        formData.extraPayment
-      )
-    }
-    return null
-  }, [formData])
-
-  // Chart data
-  const schedule = useMemo(() => {
-    return generateAmortizationSchedule(formData.principal, formData.rate, formData.tenure)
-  }, [formData.principal, formData.rate, formData.tenure])
-
-  const chartData = useMemo(() => {
-    return schedule.slice(0, Math.min(60, schedule.length)).map((item, idx) => ({
-      month: item.month,
-      principal: item.principal,
-      interest: item.interest,
-      balance: item.balance,
-    }))
-  }, [schedule])
-
-  const principalInterestData = [
-    { name: 'Principal', value: formData.principal, fill: '#0ea5e9' },
-    { name: 'Interest', value: totalInterest, fill: '#f97316' },
-  ]
-
-  const tenureMonthsOptions = [60, 84, 120, 180, 240]
-  const rateOptions = [7, 8, 8.5, 9, 9.5, 10, 10.5, 11]
+  const optimization = useMemo(() => formData.extraPayment > 0 ? calculateEarlyPaymentBenefit(formData.principal, formData.rate, formData.tenure, formData.extraPayment) : null, [formData])
+  const schedule = useMemo(() => generateAmortizationSchedule(formData.principal, formData.rate, formData.tenure), [formData.principal, formData.rate, formData.tenure])
+  const chartData = useMemo(() => schedule.slice(0, Math.min(60, schedule.length)), [schedule])
+  const splitData = [{ name: 'Principal', value: formData.principal, fill: '#0ea5e9' }, { name: 'Interest', value: totalInterest, fill: '#f97316' }]
 
   return (
-    <div className="min-h-screen pt-8 pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-4xl font-bold mb-2">💰 Smart EMI Calculator & Repayment Simulator</h1>
-          <p className="text-slate-600 dark:text-slate-400">
-            Visualize your loan repayment and discover strategies to save interest
-          </p>
-        </motion.div>
+    <div className="min-h-screen py-8 pb-20">
+      <div className="page-shell">
+        <PageHeader
+          eyebrow="Loan planning"
+          title="Smart EMI calculator and repayment simulator"
+          description="Model monthly payments, total interest, amortization, and early-payment scenarios before choosing a loan plan."
+        />
 
-        {/* Input Controls */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-900/20 dark:to-cyan-900/20 rounded-2xl p-8 mb-8 border border-sky-200 dark:border-sky-800"
-        >
-          <h2 className="text-2xl font-bold mb-6">Input Your Loan Details</h2>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <Card hover={false} className="mb-8">
+          <h2 className="mb-6 text-2xl font-bold">Loan inputs</h2>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div>
-              <label className="block text-sm font-semibold mb-3">Loan Amount (₹)</label>
-              <input
-                type="range"
-                name="principal"
-                value={formData.principal}
-                onChange={handleChange}
-                min="1000000"
-                max="10000000"
-                step="100000"
-                className="w-full cursor-pointer"
-              />
-              <p className="text-lg font-bold mt-2 text-sky-600 dark:text-sky-400">
-                {formatNumber(formData.principal)}
-              </p>
+              <label className="mb-3 block text-sm font-semibold">Loan amount (Rs)</label>
+              <input type="range" name="principal" value={formData.principal} onChange={handleChange} min="1000000" max="10000000" step="100000" className="w-full" />
+              <p className="mt-2 text-lg font-bold text-sky-600">{formatNumber(formData.principal)}</p>
             </div>
-
             <div>
-              <label className="block text-sm font-semibold mb-3">Interest Rate (%)</label>
-              <select
-                name="rate"
-                value={formData.rate}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-sky-300 dark:border-sky-700 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none"
-              >
-                {rateOptions.map((r) => (
-                  <option key={r} value={r}>{r}%</option>
-                ))}
+              <label className="mb-3 block text-sm font-semibold">Interest rate</label>
+              <select name="rate" value={formData.rate} onChange={handleChange} className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-900">
+                {[7, 8, 8.5, 9, 9.5, 10, 10.5, 11].map((r) => <option key={r} value={r}>{r}%</option>)}
               </select>
             </div>
-
             <div>
-              <label className="block text-sm font-semibold mb-3">Tenure (Months)</label>
-              <select
-                name="tenure"
-                value={formData.tenure}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-sky-300 dark:border-sky-700 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none"
-              >
-                {tenureMonthsOptions.map((m) => (
-                  <option key={m} value={m}>{m} months ({(m / 12).toFixed(1)} years)</option>
-                ))}
+              <label className="mb-3 block text-sm font-semibold">Tenure</label>
+              <select name="tenure" value={formData.tenure} onChange={handleChange} className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-900">
+                {[60, 84, 120, 180, 240].map((m) => <option key={m} value={m}>{m} months ({(m / 12).toFixed(1)} years)</option>)}
               </select>
             </div>
-
             <div>
-              <label className="block text-sm font-semibold mb-3">Extra Monthly Payment (₹)</label>
-              <input
-                type="number"
-                name="extraPayment"
-                value={formData.extraPayment}
-                onChange={handleChange}
-                placeholder="0"
-                className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-sky-300 dark:border-sky-700 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none"
-              />
+              <label className="mb-3 block text-sm font-semibold">Extra monthly payment (Rs)</label>
+              <input type="number" name="extraPayment" value={formData.extraPayment} onChange={handleChange} className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-900" />
             </div>
           </div>
-        </motion.div>
+        </Card>
 
-        {/* Key Metrics */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid md:grid-cols-4 gap-6 mb-8"
-        >
-          <StatCard
-            label="Monthly EMI"
-            value={emi}
-            unit="₹"
-            icon={DollarSign}
-          />
-          <StatCard
-            label="Total Interest"
-            value={totalInterest}
-            unit="₹"
-            icon={TrendingDown}
-            trend="over tenure"
-          />
-          <StatCard
-            label="Total Payment"
-            value={totalPayment}
-            unit="₹"
-            icon={Calendar}
-          />
-          <StatCard
-            label="Loan Duration"
-            value={formData.tenure}
-            unit="months"
-            icon={Calendar}
-            trend={`${(formData.tenure / 12).toFixed(1)} years`}
-          />
-        </motion.div>
-
-        {/* Main Charts */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-8">
-          {/* Principal vs Interest Breakdown */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Card>
-              <h3 className="text-xl font-bold mb-6">Payment Breakdown</h3>
-              <div className="flex justify-center">
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={principalInterestData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: ${formatNumber(value)}`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {principalInterestData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => formatCurrency(value)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-6 space-y-2">
-                <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <span className="font-medium">Principal Amount</span>
-                  <span className="font-bold text-blue-600 dark:text-blue-400">{formatCurrency(formData.principal)}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <span className="font-medium">Total Interest</span>
-                  <span className="font-bold text-orange-600 dark:text-orange-400">{formatCurrency(totalInterest)}</span>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
-
-          {/* Amortization Chart */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Card>
-              <h3 className="text-xl font-bold mb-6">Repayment Schedule (First 5 Years)</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart
-                  data={chartData}
-                  margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" label={{ value: 'Months', position: 'insideBottomRight', offset: -5 }} />
-                  <YAxis label={{ value: 'Amount (₹)', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip formatter={(value) => formatCurrency(value)} />
-                  <Legend />
-                  <Bar dataKey="principal" stackId="a" fill="#0ea5e9" name="Principal" />
-                  <Bar dataKey="interest" stackId="a" fill="#f97316" name="Interest" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          </motion.div>
+        <div className="mb-8 grid gap-6 md:grid-cols-4">
+          <StatCard label="Monthly EMI" value={emi} unit="Rs" icon={DollarSign} />
+          <StatCard label="Total Interest" value={totalInterest} unit="Rs" icon={TrendingDown} trend="over tenure" />
+          <StatCard label="Total Payment" value={totalPayment} unit="Rs" icon={Calendar} />
+          <StatCard label="Loan Duration" value={formData.tenure} unit="months" icon={Calendar} trend={`${(formData.tenure / 12).toFixed(1)} years`} />
         </div>
 
-        {/* Balance Over Time */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mb-8"
-        >
-          <Card>
-            <h3 className="text-xl font-bold mb-6">Outstanding Balance Over Time</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart
-                data={chartData}
-                margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" label={{ value: 'Months', position: 'insideBottomRight', offset: -5 }} />
-                <YAxis label={{ value: 'Balance (₹)', angle: -90, position: 'insideLeft' }} />
+        <div className="mb-8 grid gap-8 lg:grid-cols-2">
+          <Card hover={false}>
+            <h3 className="mb-6 text-xl font-bold">Payment breakdown</h3>
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie data={splitData} cx="50%" cy="50%" outerRadius={85} dataKey="value" label={({ name, value }) => `${name}: ${formatNumber(value)}`}>
+                  {splitData.map((entry) => <Cell key={entry.name} fill={entry.fill} />)}
+                </Pie>
                 <Tooltip formatter={(value) => formatCurrency(value)} />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="balance"
-                  stroke="#0ea5e9"
-                  dot={false}
-                  strokeWidth={3}
-                  name="Remaining Balance"
-                />
-              </LineChart>
+              </PieChart>
             </ResponsiveContainer>
           </Card>
-        </motion.div>
 
-        {/* Early Payment Benefit */}
+          <Card hover={false}>
+            <h3 className="mb-6 text-xl font-bold">Repayment schedule: first 5 years</h3>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip formatter={(value) => formatCurrency(value)} />
+                <Legend />
+                <Bar dataKey="principal" stackId="a" fill="#0ea5e9" name="Principal" />
+                <Bar dataKey="interest" stackId="a" fill="#f97316" name="Interest" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </div>
+
+        <Card hover={false} className="mb-8">
+          <h3 className="mb-6 text-xl font-bold">Outstanding balance over time</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip formatter={(value) => formatCurrency(value)} />
+              <Legend />
+              <Line type="monotone" dataKey="balance" stroke="#0ea5e9" dot={false} strokeWidth={3} name="Remaining Balance" />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+
         {optimization && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="mb-8"
-          >
-            <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h3 className="text-2xl font-bold mb-1">🎉 Extra Payment Optimization</h3>
-                  <p className="text-slate-600 dark:text-slate-400">
-                    With ₹{formatNumber(formData.extraPayment)} extra monthly payment:
-                  </p>
-                </div>
-                <Badge variant="success">Recommended</Badge>
+          <Card hover={false} className="mb-8 border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30">
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-2xl font-bold">Extra payment optimization</h3>
+                <p className="mt-1 text-slate-600 dark:text-slate-300">With Rs {formatNumber(formData.extraPayment)} extra monthly payment</p>
               </div>
-
-              <div className="grid md:grid-cols-4 gap-6">
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-lg">
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">New Tenure</p>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    {optimization.newTenure} months
-                  </p>
-                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                    Save {optimization.tenureSaved} months
-                  </p>
-                </div>
-
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-lg">
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Interest Saved</p>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    ₹{formatNumber(optimization.interestSaved)}
-                  </p>
-                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                    {((optimization.interestSaved / totalInterest) * 100).toFixed(1)}% reduction
-                  </p>
-                </div>
-
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-lg">
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">New Total Payment</p>
-                  <p className="text-2xl font-bold text-sky-600 dark:text-sky-400">
-                    ₹{formatNumber(optimization.newTotal)}
-                  </p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                    Savings: ₹{formatNumber(totalPayment - optimization.newTotal)}
-                  </p>
-                </div>
-
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-lg">
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">13th Month Strategy</p>
-                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    ₹{formatNumber(emi * 1.5)}
-                  </p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                    Pay once a year
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 p-4 bg-white dark:bg-slate-800 rounded-lg border border-green-200 dark:border-green-800">
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  💡 Pro Tip: Using the 13th month payment strategy (paying an extra EMI once yearly) can significantly reduce your loan tenure and interest. Combined with extra monthly payments, you could save up to ₹{formatNumber(optimization.interestSaved)} in interest!
-                </p>
-              </div>
-            </Card>
-          </motion.div>
+              <Badge variant="success">Recommended</Badge>
+            </div>
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="rounded-lg bg-white p-4 dark:bg-slate-950"><p className="text-sm text-slate-500">New tenure</p><p className="text-2xl font-bold text-emerald-600">{optimization.newTenure} months</p></div>
+              <div className="rounded-lg bg-white p-4 dark:bg-slate-950"><p className="text-sm text-slate-500">Interest saved</p><p className="text-2xl font-bold text-emerald-600">Rs {formatNumber(optimization.interestSaved)}</p></div>
+              <div className="rounded-lg bg-white p-4 dark:bg-slate-950"><p className="text-sm text-slate-500">New total</p><p className="text-2xl font-bold text-sky-600">Rs {formatNumber(optimization.newTotal)}</p></div>
+              <div className="rounded-lg bg-white p-4 dark:bg-slate-950"><p className="text-sm text-slate-500">Yearly extra EMI</p><p className="text-2xl font-bold">Rs {formatNumber(emi * 1.5)}</p></div>
+            </div>
+          </Card>
         )}
 
-        {/* Amortization Schedule */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="mb-8"
-        >
-          <Card>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold">📊 Full Amortization Schedule</h3>
-              <Button
-                variant={showSchedule ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setShowSchedule(!showSchedule)}
-              >
-                {showSchedule ? 'Hide' : 'Show'} Details
-              </Button>
-            </div>
-
-            {showSchedule && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-700">
-                      <th className="text-left px-4 py-2 font-semibold">Month</th>
-                      <th className="text-right px-4 py-2 font-semibold">EMI</th>
-                      <th className="text-right px-4 py-2 font-semibold">Principal</th>
-                      <th className="text-right px-4 py-2 font-semibold">Interest</th>
-                      <th className="text-right px-4 py-2 font-semibold">Balance</th>
+        <Card hover={false}>
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="text-xl font-bold">Full amortization schedule</h3>
+            <Button variant={showSchedule ? 'primary' : 'outline'} size="sm" onClick={() => setShowSchedule(!showSchedule)}>{showSchedule ? 'Hide' : 'Show'} details</Button>
+          </div>
+          {showSchedule && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-slate-200 dark:border-slate-800"><th className="px-4 py-2 text-left">Month</th><th className="px-4 py-2 text-right">EMI</th><th className="px-4 py-2 text-right">Principal</th><th className="px-4 py-2 text-right">Interest</th><th className="px-4 py-2 text-right">Balance</th></tr></thead>
+                <tbody>
+                  {schedule.slice(0, 12).map((row) => (
+                    <tr key={row.month} className="border-b border-slate-100 dark:border-slate-800">
+                      <td className="px-4 py-2">{row.month}</td><td className="px-4 py-2 text-right">Rs {formatNumber(row.emi)}</td><td className="px-4 py-2 text-right text-sky-600">Rs {formatNumber(row.principal)}</td><td className="px-4 py-2 text-right text-orange-600">Rs {formatNumber(row.interest)}</td><td className="px-4 py-2 text-right font-semibold">Rs {formatNumber(row.balance)}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {schedule.slice(0, 12).map((row, idx) => (
-                      <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                        <td className="px-4 py-2">{row.month}</td>
-                        <td className="text-right px-4 py-2">₹{formatNumber(row.emi)}</td>
-                        <td className="text-right px-4 py-2 text-sky-600 dark:text-sky-400">₹{formatNumber(row.principal)}</td>
-                        <td className="text-right px-4 py-2 text-orange-600 dark:text-orange-400">₹{formatNumber(row.interest)}</td>
-                        <td className="text-right px-4 py-2 font-semibold">₹{formatNumber(row.balance)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {schedule.length > 12 && (
-                  <p className="text-center py-4 text-slate-600 dark:text-slate-400">
-                    Showing first 12 months of {schedule.length} total months...
-                  </p>
-                )}
-              </div>
-            )}
-          </Card>
-        </motion.div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   )

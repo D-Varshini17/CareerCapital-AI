@@ -1,6 +1,25 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 
+export function PageHeader({ eyebrow, title, description, actions = null }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mb-8 flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 dark:border-slate-800 lg:flex-row lg:items-end"
+    >
+      <div>
+        {eyebrow && <p className="section-kicker mb-3">{eyebrow}</p>}
+        <h1 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-4xl">{title}</h1>
+        {description && (
+          <p className="mt-3 max-w-3xl text-slate-600 dark:text-slate-300">{description}</p>
+        )}
+      </div>
+      {actions && <div className="flex flex-wrap gap-3">{actions}</div>}
+    </motion.div>
+  )
+}
+
 export function Card({ children, className = '', hover = true, ...props }) {
   return (
     <motion.div

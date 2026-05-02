@@ -1,8 +1,8 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
-import { Card, Badge, ProgressBar, Button } from '../components'
-import { TrendingUp, CheckCircle } from 'lucide-react'
+import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { CheckCircle, ShieldCheck } from 'lucide-react'
+import { Badge, Button, Card, PageHeader, ProgressBar } from '../components'
 
 export default function VisaPredictor() {
   const predictionData = [
@@ -24,98 +24,65 @@ export default function VisaPredictor() {
   ]
 
   const factors = [
-    { title: 'Strong Academic Profile', check: true },
-    { title: 'Good English Proficiency', check: true },
-    { title: 'Clear Career Goals', check: true },
-    { title: 'Demonstrated Financial Capacity', check: true },
-    { title: 'Strong Letters of Recommendation', check: false },
-    { title: 'Unique SOP', check: false },
+    { title: 'Strong academic profile', check: true },
+    { title: 'Good English proficiency', check: true },
+    { title: 'Clear career goals', check: true },
+    { title: 'Demonstrated financial capacity', check: true },
+    { title: 'Strong recommendation letters', check: false },
+    { title: 'Distinct statement of purpose', check: false },
   ]
 
   return (
-    <div className="min-h-screen pt-8 pb-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-4xl font-bold mb-2">🛂 Visa & Risk Predictor</h1>
-          <p className="text-slate-600 dark:text-slate-400">
-            AI-powered visa success probability and risk assessment
-          </p>
-        </motion.div>
+    <div className="min-h-screen py-8 pb-20">
+      <div className="page-shell max-w-6xl">
+        <PageHeader
+          eyebrow="Visa readiness"
+          title="Understand your visa and risk profile."
+          description="Review success probability, risk areas, and preparation gaps before final application submission."
+        />
 
-        <div className="grid lg:grid-cols-3 gap-8 mb-8">
-          {/* Main Prediction */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="lg:col-span-2"
-          >
-            <Card className="bg-gradient-to-br from-sky-50 to-cyan-50 dark:from-sky-900/20 dark:to-cyan-900/20">
-              <div className="flex items-center justify-between mb-8">
+        <div className="mb-8 grid gap-8 lg:grid-cols-3">
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="lg:col-span-2">
+            <Card hover={false} className="border-sky-200 bg-sky-50 dark:border-sky-900 dark:bg-sky-950/30">
+              <div className="mb-8 flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">Your Visa Success Probability</h2>
-                  <p className="text-slate-600 dark:text-slate-400">Updated: Today</p>
+                  <h2 className="text-2xl font-bold">Visa success probability</h2>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Updated today</p>
                 </div>
-                <Badge variant="success">Predicted in 6 months</Badge>
+                <Badge variant="success">6-month forecast</Badge>
               </div>
-
-              <div className="text-center mb-8">
-                <div className="inline-block p-8 bg-white dark:bg-slate-800 rounded-full border-4 border-sky-500">
-                  <p className="text-5xl font-bold text-sky-600 dark:text-sky-400">87%</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">Success Probability</p>
+              <div className="mb-8 grid gap-6 md:grid-cols-[auto_1fr] md:items-center">
+                <div className="rounded-lg bg-white p-8 text-center ring-1 ring-sky-200 dark:bg-slate-950 dark:ring-sky-900">
+                  <p className="text-5xl font-bold text-sky-600">87%</p>
+                  <p className="mt-2 text-sm text-slate-500">Success probability</p>
                 </div>
-              </div>
-
-              <ProgressBar label="Current Progress" value={87} max={100} animated={false} />
-
-              <div className="mt-8 p-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-800 rounded-lg">
-                <p className="font-semibold text-green-900 dark:text-green-200">
-                  ✓ Good chances! Focus on strengthening your SOP and LORs
-                </p>
+                <div>
+                  <ProgressBar label="Current readiness" value={87} max={100} animated={false} />
+                  <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200">
+                    Good chances. Focus next on recommendation letters and SOP strength.
+                  </p>
+                </div>
               </div>
             </Card>
           </motion.div>
 
-          {/* Risk Assessment */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Card>
-              <h3 className="text-xl font-bold mb-4">Risk Assessment</h3>
-
-              <div className="space-y-3">
-                {[
-                  { risk: 'Financial', level: 'Low', color: 'text-green-600' },
-                  { risk: 'Academic', level: 'Low', color: 'text-green-600' },
-                  { risk: 'Language', level: 'Low', color: 'text-green-600' },
-                  { risk: 'Experience', level: 'Medium', color: 'text-yellow-600' },
-                ].map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800 rounded">
-                    <span className="text-sm font-medium">{item.risk}</span>
-                    <span className={`text-sm font-bold ${item.color}`}>{item.level}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Button className="w-full mt-4">Get Detailed Report</Button>
-            </Card>
-          </motion.div>
+          <Card hover={false}>
+            <h3 className="mb-4 flex items-center gap-2 text-xl font-bold"><ShieldCheck className="h-5 w-5 text-sky-600" /> Risk assessment</h3>
+            <div className="space-y-3">
+              {[['Financial', 'Low'], ['Academic', 'Low'], ['Language', 'Low'], ['Experience', 'Medium']].map(([risk, level]) => (
+                <div key={risk} className="flex items-center justify-between rounded-lg bg-slate-50 p-3 dark:bg-slate-900">
+                  <span className="text-sm font-medium">{risk}</span>
+                  <Badge variant={level === 'Low' ? 'success' : 'warning'}>{level}</Badge>
+                </div>
+              ))}
+            </div>
+            <Button className="mt-5 w-full">Get detailed report</Button>
+          </Card>
         </div>
 
-        {/* Factor Analysis */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid lg:grid-cols-2 gap-8"
-        >
-          <Card>
-            <h3 className="text-xl font-bold mb-6">Profile Factors</h3>
+        <div className="grid gap-8 lg:grid-cols-2">
+          <Card hover={false}>
+            <h3 className="mb-6 text-xl font-bold">Profile factors</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={predictionData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -127,8 +94,8 @@ export default function VisaPredictor() {
             </ResponsiveContainer>
           </Card>
 
-          <Card>
-            <h3 className="text-xl font-bold mb-6">Success Probability Over Time</h3>
+          <Card hover={false}>
+            <h3 className="mb-6 text-xl font-bold">Probability over time</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={successData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -137,37 +104,23 @@ export default function VisaPredictor() {
                 <Tooltip />
                 <Legend />
                 <Line type="monotone" dataKey="probability" stroke="#0ea5e9" name="Success %" />
-                <Line type="monotone" dataKey="confidence" stroke="#06b6d4" name="Confidence %" />
+                <Line type="monotone" dataKey="confidence" stroke="#14b8a6" name="Confidence %" />
               </LineChart>
             </ResponsiveContainer>
           </Card>
-        </motion.div>
+        </div>
 
-        {/* Checklist */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-8"
-        >
-          <Card>
-            <h3 className="text-xl font-bold mb-6">Success Factors Checklist</h3>
-            <div className="space-y-3">
-              {factors.map((factor, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800">
-                  {factor.check ? (
-                    <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
-                  ) : (
-                    <div className="w-5 h-5 border-2 border-slate-400 rounded-full flex-shrink-0" />
-                  )}
-                  <span className={factor.check ? 'text-green-700 dark:text-green-300' : 'text-slate-600 dark:text-slate-400'}>
-                    {factor.title}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
+        <Card hover={false} className="mt-8">
+          <h3 className="mb-6 text-xl font-bold">Success factors checklist</h3>
+          <div className="grid gap-3 md:grid-cols-2">
+            {factors.map((factor) => (
+              <div key={factor.title} className="flex items-center gap-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-900">
+                {factor.check ? <CheckCircle className="h-5 w-5 text-emerald-600" /> : <div className="h-5 w-5 rounded-full border-2 border-slate-400" />}
+                <span className={factor.check ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-400'}>{factor.title}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
       </div>
     </div>
   )

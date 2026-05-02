@@ -1,117 +1,57 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Card, Button, Badge } from '../components'
-import { FileText, Upload, Lightbulb, CheckCircle } from 'lucide-react'
+import { CheckCircle, FileText, Lightbulb, Upload } from 'lucide-react'
+import { Badge, Button, Card, PageHeader, ProgressBar } from '../components'
 
 export default function ProfileEnhancer() {
   const suggestions = [
-    {
-      category: 'Statement of Purpose',
-      score: 72,
-      feedback: 'Your SOP is good, but lacks specific examples',
-      tips: [
-        'Add 2-3 concrete examples of your achievements',
-        'Connect your past with your future goals',
-        'Make it 250-300 words for maximum impact',
-      ],
-    },
-    {
-      category: 'Skills & Certifications',
-      score: 65,
-      feedback: 'Add more technical certifications',
-      tips: [
-        'Get AWS or Google Cloud certifications',
-        'Complete 1-2 online courses in your field',
-        'Highlight relevant GitHub projects',
-      ],
-    },
-    {
-      category: 'Work Experience',
-      score: 80,
-      feedback: 'Strong work background',
-      tips: [
-        'Quantify your achievements with numbers',
-        'Describe impact, not just responsibilities',
-        'Get strong letters from managers',
-      ],
-    },
+    { category: 'Statement of Purpose', score: 72, feedback: 'Good foundation, but it needs sharper examples.', tips: ['Add 2-3 concrete achievements.', 'Connect past work to future goals.', 'Tighten the structure for a clearer story.'] },
+    { category: 'Skills and certifications', score: 65, feedback: 'More proof of technical depth will help.', tips: ['Add one cloud or data certification.', 'Complete focused courses in your target field.', 'Highlight relevant GitHub projects.'] },
+    { category: 'Work experience', score: 80, feedback: 'Strong background with room for quantified impact.', tips: ['Use metrics wherever possible.', 'Describe outcomes, not only responsibilities.', 'Request targeted manager recommendations.'] },
   ]
 
   return (
-    <div className="min-h-screen pt-8 pb-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-4xl font-bold mb-2">💪 Profile Enhancer</h1>
-          <p className="text-slate-600 dark:text-slate-400">
-            Get AI-powered suggestions to strengthen your application
-          </p>
-        </motion.div>
+    <div className="min-h-screen py-8 pb-20">
+      <div className="page-shell max-w-4xl">
+        <PageHeader
+          eyebrow="Profile enhancer"
+          title="Strengthen your application materials."
+          description="Review SOP, CV, skills, and experience gaps with practical recommendations before submitting applications."
+        />
 
-        {/* Upload Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8"
-        >
-          <Card className="border-dashed border-2 border-sky-400 bg-sky-50 dark:bg-sky-900/20">
-            <div className="text-center py-8">
-              <Upload className="w-12 h-12 text-sky-600 dark:text-sky-400 mx-auto mb-4" />
-              <h3 className="text-lg font-bold mb-2">Upload Your Documents</h3>
-              <p className="text-slate-600 dark:text-slate-400 mb-6">
-                Upload your SOP, CV, or any document for AI analysis
-              </p>
-              <Button>Choose Files</Button>
+        <Card hover={false} className="mb-8 border-dashed border-sky-300 bg-sky-50 dark:border-sky-900 dark:bg-sky-950/30">
+          <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="rounded-lg bg-white p-3 ring-1 ring-sky-200 dark:bg-slate-950 dark:ring-sky-900">
+                <Upload className="h-6 w-6 text-sky-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold">Upload documents for review</h3>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">SOP, CV, transcripts, or portfolio notes.</p>
+              </div>
             </div>
-          </Card>
-        </motion.div>
+            <Button>Choose files</Button>
+          </div>
+        </Card>
 
-        {/* Analysis Results */}
         <div className="space-y-6">
           {suggestions.map((suggestion, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + idx * 0.05 }}
-            >
-              <Card>
-                <div className="flex items-start justify-between mb-4">
+            <motion.div key={suggestion.category} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.06 }}>
+              <Card hover={false}>
+                <div className="mb-5 flex items-start justify-between gap-4">
                   <div>
                     <h3 className="text-xl font-bold">{suggestion.category}</h3>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {suggestion.feedback}
-                    </p>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{suggestion.feedback}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-bold text-sky-600 dark:text-sky-400">
-                      {suggestion.score}%
-                    </p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">Score</p>
-                  </div>
+                  <Badge>{suggestion.score}% score</Badge>
                 </div>
-
-                {/* Progress Bar */}
-                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mb-6">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${suggestion.score}%` }}
-                    transition={{ duration: 0.8, delay: idx * 0.1 }}
-                    className="h-full bg-gradient-to-r from-sky-500 to-cyan-500 rounded-full"
-                  />
-                </div>
-
-                {/* Tips */}
-                <div className="space-y-3">
-                  <p className="font-semibold text-sm">💡 Improvement Tips:</p>
-                  {suggestion.tips.map((tip, tipIdx) => (
-                    <div key={tipIdx} className="flex gap-3 items-start">
-                      <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-slate-600 dark:text-slate-400">{tip}</p>
+                <ProgressBar value={suggestion.score} max={100} animated={false} />
+                <div className="mt-6 space-y-3">
+                  <p className="flex items-center gap-2 text-sm font-semibold"><Lightbulb className="h-4 w-4 text-sky-600" /> Improvement plan</p>
+                  {suggestion.tips.map((tip) => (
+                    <div key={tip} className="flex items-start gap-3">
+                      <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600" />
+                      <p className="text-sm text-slate-600 dark:text-slate-300">{tip}</p>
                     </div>
                   ))}
                 </div>
@@ -120,42 +60,17 @@ export default function ProfileEnhancer() {
           ))}
         </div>
 
-        {/* Resources */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-8"
-        >
-          <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
-            <h2 className="text-xl font-bold mb-4">📚 Resources</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              {[
-                { title: 'SOP Writing Guide', desc: '10-step guide to craft perfect SOP' },
-                { title: 'CV Templates', desc: 'Download ATS-friendly CV templates' },
-                { title: 'Skill Development', desc: 'Recommended courses & certifications' },
-                { title: 'Interview Prep', desc: 'Practice with AI mock interviewer' },
-              ].map((resource, idx) => (
-                <div key={idx} className="p-4 bg-white dark:bg-slate-800 rounded-lg">
-                  <p className="font-semibold mb-1">{resource.title}</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">{resource.desc}</p>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-8 text-center"
-        >
-          <Button size="lg" className="px-8">
-            Get Full Analysis Report
-          </Button>
-        </motion.div>
+        <Card hover={false} className="mt-8">
+          <h2 className="mb-4 flex items-center gap-2 text-xl font-bold"><FileText className="h-5 w-5 text-sky-600" /> Resources</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {['SOP writing guide', 'ATS-ready CV templates', 'Skill development roadmap', 'Interview preparation'].map((title) => (
+              <div key={title} className="rounded-lg border border-slate-200 p-4 dark:border-slate-800">
+                <p className="font-semibold">{title}</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Practical next steps for application readiness.</p>
+              </div>
+            ))}
+          </div>
+        </Card>
       </div>
     </div>
   )
