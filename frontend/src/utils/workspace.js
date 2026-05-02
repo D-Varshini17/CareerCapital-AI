@@ -1,6 +1,6 @@
 export const journeyStages = [
   { number: '01', label: 'Career Discovery', detail: 'AI navigator for countries, courses, and universities by profile.', href: '/career-discovery' },
-  { number: '02', label: 'Admission Planning', detail: 'Intake strategy, probability prediction, and application fit.', href: '/profile-enhancer' },
+  { number: '02', label: 'Admission Planning', detail: 'Intake strategy, probability prediction, and application fit.', href: '/admission-planning' },
   { number: '03', label: 'Profile Enhancement', detail: 'SOP audits, resume upgrades, and readiness signals.', href: '/profile-enhancer' },
   { number: '04', label: 'Cost & ROI Planning', detail: 'Tuition, living cost, and salary-benchmarked payback view.', href: '/college-finder' },
   { number: '05', label: 'Loan Intelligence', detail: 'Eligibility pulse across banks and NBFC-style funding paths.', href: '/dashboard' },

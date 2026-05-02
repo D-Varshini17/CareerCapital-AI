@@ -2,23 +2,17 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Bell,
   Briefcase,
-  CalendarDays,
   ChevronLeft,
   ChevronRight,
-  Clock3,
   FileText,
   GraduationCap,
   Landmark,
   LayoutDashboard,
-  Link2,
   LogOut,
   Menu,
   Moon,
   Plane,
-  PlayCircle,
-  Quote,
   Search,
   Sparkles,
   Sun,
@@ -28,7 +22,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore, useThemeStore } from '../store'
 import { userService } from '../services/api'
-import { buildWorkspaceAlerts, getCurrentStage, getProfileGaps, getProfileStrength, getSmartSuggestion, journeyStages } from '../utils/workspace'
+import { getCurrentStage, getProfileGaps, getProfileStrength, journeyStages } from '../utils/workspace'
 
 const stageIcons = {
   '01': Target,
@@ -43,12 +37,6 @@ const stageIcons = {
   '10': WalletCards,
 }
 
-const aiSuggestions = [
-  { label: 'Official links', detail: 'University pages, scholarship portals, and embassy resources.', icon: Link2 },
-  { label: 'Video suggestions', detail: 'Short explainers for SOP writing, visa flow, and EMI tactics.', icon: PlayCircle },
-  { label: 'Outside reviews', detail: 'Student voices, program sentiment, and experience summaries.', icon: Quote },
-]
-
 export default function AppSidebar() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -57,18 +45,13 @@ export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [profileCenter, setProfileCenter] = useState({ profile: null, documents: [] })
-  const [alerts, setAlerts] = useState([])
 
   useEffect(() => {
     let mounted = true
-    Promise.all([
-      userService.getProfileCenter(),
-      userService.syncAlerts().catch(() => userService.getAlerts()),
-    ])
-      .then(([profileResponse, alertResponse]) => {
+    userService.getProfileCenter()
+      .then((profileResponse) => {
         if (mounted) {
           setProfileCenter({ profile: profileResponse.data.profile, documents: profileResponse.data.documents || [] })
-          setAlerts(alertResponse.data.alerts || [])
         }
       })
       .catch(() => {})
@@ -80,8 +63,6 @@ export default function AppSidebar() {
   const currentStage = useMemo(() => getCurrentStage(location.pathname), [location.pathname])
   const profileStrength = getProfileStrength(profileCenter.profile, profileCenter.documents)
   const nextGaps = getProfileGaps(profileCenter.profile, profileCenter.documents)
-  const smartSuggestion = getSmartSuggestion(profileCenter.profile, profileCenter.documents, location.pathname)
-  const sidebarAlerts = (alerts.length ? alerts : buildWorkspaceAlerts(profileCenter.profile, profileCenter.documents)).slice(0, 4)
 
   const handleLogout = () => {
     logout()
@@ -138,6 +119,25 @@ export default function AppSidebar() {
           )}
         </Link>
 
+        <div className="mb-4 space-y-2">
+          <SidebarFeatureLink
+            collapsed={collapsed}
+            href="/admission-planning"
+            icon={GraduationCap}
+            label="Admission Planning"
+            active={location.pathname === '/admission-planning'}
+            onClick={() => setMobileOpen(false)}
+          />
+          <SidebarFeatureLink
+            collapsed={collapsed}
+            href="/profile-enhancer"
+            icon={Sparkles}
+            label="Profile Enhancement"
+            active={location.pathname === '/profile-enhancer'}
+            onClick={() => setMobileOpen(false)}
+          />
+        </div>
+
         {!collapsed && (
           <div className="mb-4 rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm dark:border-white/8 dark:bg-white/5">
             <div className="flex items-start justify-between gap-3">
@@ -159,85 +159,6 @@ export default function AppSidebar() {
             </p>
           </div>
         )}
-
-        <Link
-          to="/ai-engine"
-          onClick={() => setMobileOpen(false)}
-          className="mb-4 block rounded-2xl border border-teal-300/20 bg-[linear-gradient(135deg,rgba(17,128,125,0.12),rgba(255,255,255,0.72))] p-3 shadow-sm transition hover:border-teal-400/35 hover:shadow-md dark:border-teal-400/14 dark:bg-[linear-gradient(135deg,rgba(18,93,101,0.42),rgba(255,255,255,0.04))]"
-        >
-          <div className={`flex items-start ${collapsed ? 'justify-center' : 'gap-3'}`}>
-            <div className="rounded-xl bg-teal-500/12 p-2 text-teal-700 dark:bg-white/8 dark:text-[#7ce7ff]">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            {!collapsed && (
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#0a2540] dark:text-white">AI Engine</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Doubt solver with links, videos, and review signals.</p>
-              </div>
-            )}
-          </div>
-
-          {!collapsed && (
-            <>
-              <div className="mt-3 rounded-xl border border-teal-200/50 bg-white/80 px-3 py-2.5 text-xs leading-5 text-slate-600 dark:border-white/10 dark:bg-slate-950/45 dark:text-slate-300">
-                {smartSuggestion}
-              </div>
-              <div className="mt-3 space-y-2">
-                {aiSuggestions.map((item) => {
-                  const Icon = item.icon
-                  return (
-                    <div key={item.label} className="rounded-xl bg-slate-50/90 px-3 py-2.5 dark:bg-slate-950/45">
-                      <div className="flex items-start gap-2.5">
-                        <Icon className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-teal-700 dark:text-[#7ce7ff]" />
-                        <div>
-                          <p className="text-xs font-semibold text-[#0a2540] dark:text-white">{item.label}</p>
-                          <p className="mt-1 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{item.detail}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </>
-          )}
-        </Link>
-
-        <Link
-          to="/alerts"
-          onClick={() => setMobileOpen(false)}
-          className="mb-4 block rounded-2xl border border-slate-200/80 bg-white/70 p-3 shadow-sm transition hover:border-sky-300/45 hover:shadow-md dark:border-white/8 dark:bg-white/5"
-        >
-          <div className={`flex items-start ${collapsed ? 'justify-center' : 'gap-3'}`}>
-            <div className="rounded-xl bg-sky-500/12 p-2 text-sky-600 dark:bg-white/8 dark:text-[#53d7ff]">
-              <Bell className="h-4 w-4" />
-            </div>
-            {!collapsed && (
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#0a2540] dark:text-white">Alerts</p>
-                <p className="truncate text-xs text-slate-500 dark:text-slate-400">Chronological reminders and deadline pressure</p>
-              </div>
-            )}
-          </div>
-
-          {!collapsed && (
-            <div className="mt-3 space-y-2">
-              {sidebarAlerts.map((item) => {
-                const Icon = alertIcon(item.type)
-                return (
-                  <div key={item.id} className="rounded-xl bg-slate-50/90 px-3 py-2.5 dark:bg-slate-950/45">
-                    <div className="flex items-start gap-2.5">
-                      <Icon className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-sky-600 dark:text-[#53d7ff]" />
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-[#0a2540] dark:text-white">{item.title}</p>
-                        <p className="mt-1 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{item.dueDate}</p>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </Link>
 
         {!collapsed && (
           <p className="mb-3 px-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Journey stages</p>
@@ -278,7 +199,6 @@ export default function AppSidebar() {
                         <Icon className={`h-4 w-4 flex-shrink-0 ${active ? 'text-teal-700 dark:text-[#7ce7ff]' : 'text-slate-500 dark:text-slate-400'}`} />
                         <p className="truncate text-sm font-semibold">{item.label}</p>
                       </div>
-                      <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{item.detail}</p>
                     </div>
                   </div>
                 )}
@@ -366,11 +286,27 @@ export default function AppSidebar() {
   )
 }
 
-function alertIcon(type) {
-  if (type === 'Scholarship Deadline') return CalendarDays
-  if (type === 'Exam Date') return Clock3
-  if (type === 'Registration') return FileText
-  return Bell
+function SidebarFeatureLink({ collapsed, href, icon: Icon, label, active, onClick }) {
+  return (
+    <Link
+      to={href}
+      onClick={onClick}
+      className={`group relative flex items-center rounded-2xl border transition ${
+        collapsed ? 'justify-center px-2 py-3.5' : 'gap-3 px-3 py-3.5'
+      } ${
+        active
+          ? 'border-teal-400/30 bg-[linear-gradient(135deg,rgba(17,128,125,0.18),rgba(13,148,136,0.1))] text-[#0a2540] shadow-[inset_0_0_0_1px_rgba(20,184,166,0.16)] dark:border-teal-300/20 dark:bg-[linear-gradient(135deg,rgba(15,118,110,0.42),rgba(255,255,255,0.04))] dark:text-white'
+          : 'border-slate-200/80 bg-white/70 text-slate-700 hover:border-teal-300/40 hover:bg-white dark:border-white/8 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/7 dark:hover:text-white'
+      }`}
+      title={collapsed ? label : undefined}
+    >
+      {active && <span className="absolute inset-y-3 right-0 w-[3px] rounded-full bg-teal-500" />}
+      <div className={`rounded-xl p-2 ${active ? 'bg-teal-500/15 text-teal-700 dark:bg-white/8 dark:text-[#7ce7ff]' : 'bg-slate-100 text-slate-600 dark:bg-white/6 dark:text-slate-300'}`}>
+        <Icon className="h-4 w-4" />
+      </div>
+      {!collapsed && <p className="truncate text-sm font-semibold">{label}</p>}
+    </Link>
+  )
 }
 
 function LogoBadge() {

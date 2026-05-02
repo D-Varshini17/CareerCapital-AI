@@ -192,9 +192,9 @@ export default function ProfileEnhancer() {
     <div className="min-h-screen soft-grid py-10 pb-24">
       <div className="page-shell">
         <PageHeader
-          eyebrow="Profile builder"
-          title="Build your profile and document center."
-          description="Create a guided student profile, upload key documents, and let the platform tailor colleges, affordability, and admission readiness."
+          eyebrow="Profile enhancement"
+          title="Improve personal details, SOP strength, and document readiness."
+          description="Build the student profile, review suggestions, audit SOP and resume quality, and upload documents for admission readiness."
         />
 
         <div className="mb-8 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -222,7 +222,7 @@ export default function ProfileEnhancer() {
           </Card>
 
           <Card hover={false}>
-            <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#0a2540] dark:text-white">Smart alerts</h2>
+            <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#0a2540] dark:text-white">Suggestions and SOP audits</h2>
             <div className="space-y-3">
               {alerts.map((alert) => (
                 <div key={alert} className="flex items-start gap-3 rounded-2xl border border-slate-200/70 bg-white/60 p-4 dark:border-slate-800 dark:bg-slate-950/40">
@@ -341,7 +341,7 @@ function StepBody({ step, profile, updateSection }) {
     case 'preferences':
       return (
         <div className="grid gap-4 md:grid-cols-2">
-          <SelectField label="Study level" value={profile.preferences.target_level} onChange={(e) => updateSection('preferences', 'target_level', e.target.value)} options={['UG', 'PG', 'PhD']} />
+          <SelectField label="Study level" value={profile.preferences.target_level} onChange={(e) => updateSection('preferences', 'target_level', e.target.value)} options={['UG', 'PG', 'PGD', 'PhD']} />
           <SelectField label="Field of interest" value={profile.preferences.field_of_interest} onChange={(e) => updateSection('preferences', 'field_of_interest', e.target.value)} options={['Computer Science', 'Business', 'Bioinformatics', 'Engineering']} />
           <div className="md:col-span-2">
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Budget range: Rs {profile.preferences.budget_range}L</label>

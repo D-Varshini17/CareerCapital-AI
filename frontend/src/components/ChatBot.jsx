@@ -18,7 +18,7 @@ export default function ChatBot() {
     setLoading(true)
     try {
       const { data } = await aiService.getChatResponse(input, {})
-      setMessages((prev) => [...prev, { id: prev.length + 1, type: 'bot', text: data.result?.text || 'Use the dashboard and AI Engine together for a stronger answer.' }])
+      setMessages((prev) => [...prev, { id: prev.length + 1, type: 'bot', text: data.result?.text || 'Use the dashboard, admission planning, and profile enhancement together for a stronger answer.' }])
     } catch {
       setMessages((prev) => [...prev, { id: prev.length + 1, type: 'bot', text: 'I could not reach the decision engine just now. Try again in a moment.' }])
     } finally {

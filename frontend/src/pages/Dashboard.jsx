@@ -62,7 +62,7 @@ export default function Dashboard() {
   const currentStage = getCurrentStage(location.pathname)
 
   const quickActions = [
-    { icon: Search, title: 'College Finder', description: 'Search colleges, courses, and countries', href: '/college-finder' },
+    { icon: Search, title: 'Admission Planning', description: 'Search colleges, courses, and requirements', href: '/admission-planning' },
     { icon: Zap, title: 'EMI Calculator', description: 'Model repayment options', href: '/emi-calculator' },
     { icon: Target, title: 'Career Discovery', description: 'Refine role and destination fit', href: '/career-discovery' },
     { icon: Calendar, title: 'Profile Center', description: 'Finish profile and upload documents', href: '/profile-enhancer' },
@@ -167,8 +167,8 @@ export default function Dashboard() {
           <Card hover={false}>
             <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Smart Suggestion Card</p>
             <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">{smartSuggestion}</p>
-            <Link to="/ai-engine" className="mt-4 inline-flex">
-              <Button variant="outline" size="sm">Open AI engine</Button>
+            <Link to="/admission-planning" className="mt-4 inline-flex">
+              <Button variant="outline" size="sm">Open admission planning</Button>
             </Link>
           </Card>
         </div>

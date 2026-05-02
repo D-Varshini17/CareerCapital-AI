@@ -19,6 +19,7 @@ import MentorshipMarketplace from './pages/MentorshipMarketplace'
 import SmartLivingAssistant from './pages/SmartLivingAssistant'
 import ProfileEnhancer from './pages/ProfileEnhancer'
 import CollegeFinder from './pages/CollegeFinder'
+import AdmissionPlanning from './pages/AdmissionPlanning'
 import AIEngine from './pages/AIEngine'
 import AlertsPage from './pages/AlertsPage'
 
@@ -28,6 +29,7 @@ const workspaceRoutes = new Set([
   '/alerts',
   '/emi-calculator',
   '/career-discovery',
+  '/admission-planning',
   '/college-finder',
   '/progress',
   '/visa-predictor',
@@ -74,6 +76,7 @@ function AppFrame() {
               <Route path="/alerts" element={<AlertsPage />} />
               <Route path="/emi-calculator" element={<EMICalculator />} />
               <Route path="/career-discovery" element={<CareerDiscovery />} />
+              <Route path="/admission-planning" element={<AdmissionPlanning />} />
               <Route path="/college-finder" element={<CollegeFinder />} />
               <Route path="/progress" element={<ProgressTracker />} />
               <Route path="/visa-predictor" element={<VisaPredictor />} />
@@ -96,6 +99,7 @@ function AppFrame() {
               <Route path="/alerts" element={<AlertsPage />} />
               <Route path="/emi-calculator" element={<EMICalculator />} />
               <Route path="/career-discovery" element={<CareerDiscovery />} />
+              <Route path="/admission-planning" element={<AdmissionPlanning />} />
               <Route path="/college-finder" element={<CollegeFinder />} />
               <Route path="/progress" element={<ProgressTracker />} />
               <Route path="/visa-predictor" element={<VisaPredictor />} />
