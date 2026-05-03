@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight, BarChart3, Brain, Calculator, Lock, Mail, UserX } from 'lucide-react'
 import { Button, InputField } from '../components'
 import { useAuthStore } from '../store'
-import { authService } from '../services/api'
+import { localAuthService } from '../services/localAuth'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -28,17 +28,12 @@ export default function LoginPage() {
       return
     }
     try {
-      const { data } = await authService.login(formData.email, formData.password)
+      const { data } = await localAuthService.login(formData.email, formData.password)
       login(data.user, data.token)
       setSuccess(true)
       setTimeout(() => navigate('/dashboard'), 800)
     } catch (err) {
-      const msg = err.response?.data?.error || ''
-      if (msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('invalid')) {
-        setError('No account found with that email. Check your credentials or sign up.')
-      } else {
-        setError('Unable to sign in. Please try again.')
-      }
+      setError(err.response?.data?.error || 'Unable to sign in. Please try again.')
       setLoading(false)
     }
   }

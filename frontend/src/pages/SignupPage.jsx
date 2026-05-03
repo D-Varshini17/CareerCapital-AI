@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight, CheckCircle, Lock, Mail, User, UserX } from 'lucide-react'
 import { Button, InputField, ProgressBar } from '../components'
 import { useAuthStore } from '../store'
-import { authService } from '../services/api'
+import { localAuthService } from '../services/localAuth'
 import { isStrongPassword, isValidEmail } from '../utils/auth'
 
 export default function SignupPage() {
@@ -49,7 +49,7 @@ export default function SignupPage() {
     if (Object.keys(next).length) return setErrors(next)
     setLoading(true)
     try {
-      const { data } = await authService.signup(formData.email, formData.password, formData.name)
+      const { data } = await localAuthService.signup(formData.email, formData.password, formData.name)
       // If the user was a guest, migrate their local data
       if (isGuest && guestData) {
         migrateGuestData(data.user, data.token)
@@ -61,10 +61,10 @@ export default function SignupPage() {
       setTimeout(() => navigate('/dashboard'), 900)
     } catch (err) {
       const msg = err.response?.data?.error || ''
-      if (msg.toLowerCase().includes('exists') || msg.toLowerCase().includes('duplicate') || err.response?.status === 409) {
+      if (err.response?.status === 409 || msg.toLowerCase().includes('already exists')) {
         setErrors({ email: 'Account already exists. Please sign in instead.' })
       } else {
-        setErrors({ email: err.response?.data?.error || 'Unable to create account. Please try again.' })
+        setErrors({ email: msg || 'Unable to create account. Please try again.' })
       }
       setLoading(false)
     }

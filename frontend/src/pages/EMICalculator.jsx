@@ -310,8 +310,6 @@ export default function EMICalculator() {
           )}
         </Card>
 
-        </Card>
-
         {/* Link to Loan Intelligence */}
         <div className="pt-8">
           <div className="rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50 to-sky-50 p-6 flex flex-col md:flex-row items-center justify-between gap-4 dark:border-indigo-900 dark:from-indigo-950/40 dark:to-sky-950/40">
