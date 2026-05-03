@@ -214,3 +214,5 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
 export { default as WorkspaceTopNav } from './WorkspaceTopNav'
 
 export { default as StickyNextStep } from './StickyNextStep'
+
+export { default as GuestBanner } from './GuestBanner'

@@ -5,7 +5,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ChatBot from './components/ChatBot'
 import AppSidebar from './components/AppSidebar'
-import { WorkspaceTopNav, StickyNextStep } from './components'
+import { WorkspaceTopNav, StickyNextStep, GuestBanner } from './components'
 
 // Pages
 import LandingPage from './pages/LandingPage'
@@ -75,6 +75,7 @@ function AppFrame() {
           <AppSidebar />
           <div className="flex min-w-0 flex-1 flex-col">
             <WorkspaceTopNav />
+            <GuestBanner />
             <main className="min-w-0 flex-1">
               <Routes>
               <Route path="/" element={<LandingPage />} />
