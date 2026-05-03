@@ -25,6 +25,7 @@ import AIEngine from './pages/AIEngine'
 import AIAssistant from './pages/AIAssistant'
 import AlertsPage from './pages/AlertsPage'
 import ScholarshipsPage from './pages/ScholarshipsPage'
+import LoanIntelligence from './pages/LoanIntelligence'
 
 const workspaceRoutes = new Set([
   '/dashboard',
@@ -41,6 +42,7 @@ const workspaceRoutes = new Set([
   '/living-assistant',
   '/profile-enhancer',
   '/scholarships',
+  '/loan-intelligence',
 ])
 
 export default function App() {
@@ -83,6 +85,7 @@ function AppFrame() {
               <Route path="/ai-assistant" element={<AIAssistant />} />
               <Route path="/alerts" element={<AlertsPage />} />
               <Route path="/emi-calculator" element={<EMICalculator />} />
+              <Route path="/loan-intelligence" element={<LoanIntelligence />} />
               <Route path="/career-discovery" element={<CareerDiscovery />} />
               <Route path="/admission-planning" element={<AdmissionPlanning />} />
               <Route path="/college-finder" element={<CollegeFinder />} />

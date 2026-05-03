@@ -30,16 +30,16 @@ import { userService } from '../services/api'
 import { getCurrentStage, getProfileGaps, getProfileStrength, journeyStages } from '../utils/workspace'
 
 const stageIcons = {
-  '01': Target,
-  '02': FileText,
-  '03': Sparkles,
-  '04': Search,
-  '05': Trophy,
-  '06': Landmark,
-  '07': Plane,
-  '08': GraduationCap,
-  '09': Briefcase,
-  '10': WalletCards,
+  '01': Target,       // Career Discovery
+  '02': FileText,     // Admission Planning
+  '03': Sparkles,     // Profile Enhancement
+  '04': Trophy,       // Cost & ROI Planning
+  '05': Landmark,     // Loan Intelligence
+  '06': WalletCards,  // Smart Repayment
+  '07': Plane,        // Visa & Risk
+  '08': GraduationCap,// Mentorship
+  '09': Briefcase,    // Smart Living
+  '10': Search,       // Progress Tracking
 }
 
 export default function AppSidebar() {

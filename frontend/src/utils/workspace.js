@@ -1,14 +1,14 @@
 export const journeyStages = [
-  { number: '01', label: 'Goal Setting', detail: 'Define destination country, course, and timeline.', href: '/career-discovery' },
-  { number: '02', label: 'Eligibility Check', detail: 'Assess academic profile against target programmes.', href: '/admission-planning' },
-  { number: '03', label: 'Profile Enhancement', detail: 'Identify and close profile gaps.', href: '/profile-enhancer' },
-  { number: '04', label: 'College Research', detail: 'Discover, compare, and shortlist institutions.', href: '/college-finder' },
-  { number: '05', label: 'Scholarship Planning', detail: 'Find and apply for funding opportunities.', href: '/scholarships' },
-  { number: '06', label: 'Loan Strategy', detail: 'Strategic financial planning module.', href: '/emi-calculator' },
-  { number: '07', label: 'Application Execution', detail: 'Manage deadlines, documents, and submissions.', href: '/applications' },
-  { number: '08', label: 'Visa Preparation', detail: 'Track visa requirements, checklist, and appointment dates.', href: '/visa-predictor' },
-  { number: '09', label: 'Pre-Departure', detail: 'Housing, insurance, currency, and logistics.', href: '/living-assistant' },
-  { number: '10', label: 'Post-Arrival & ROI', detail: 'Career tracking and loan repayment monitoring.', href: '/progress' },
+  { number: '01', label: 'Career Discovery',    detail: 'Define career goals, target country, course, and study timeline.', href: '/career-discovery' },
+  { number: '02', label: 'Admission Planning',  detail: 'Map academic profile against target programmes; build application plan.', href: '/admission-planning' },
+  { number: '03', label: 'Profile Enhancement', detail: 'Identify and close profile gaps — SOP, scores, recommendations.', href: '/profile-enhancer' },
+  { number: '04', label: 'Cost & ROI Planning', detail: 'Model total cost, scholarship impact, and projected return on investment.', href: '/college-finder' },
+  { number: '05', label: 'Loan Intelligence',   detail: 'Understand loan options, compare banks, and choose optimal plan.', href: '/loan-intelligence' },
+  { number: '06', label: 'Smart Repayment',     detail: 'Build a smart repayment strategy using advanced EMI modelling.', href: '/emi-calculator' },
+  { number: '07', label: 'Visa & Risk',         detail: 'Track visa requirements, assess risk factors, and prepare documents.', href: '/visa-predictor' },
+  { number: '08', label: 'Mentorship',          detail: 'Connect with mentors, alumni, and counsellors for guided support.', href: '/mentorship' },
+  { number: '09', label: 'Smart Living',        detail: 'Plan accommodation, insurance, forex, and pre-departure logistics.', href: '/living-assistant' },
+  { number: '10', label: 'Progress Tracking',   detail: 'Monitor career outcomes, EMI repayment, and measure study-abroad ROI.', href: '/progress' },
 ]
 
 export function getCurrentStage(pathname) {
