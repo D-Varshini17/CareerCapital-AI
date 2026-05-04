@@ -1,13 +1,416 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CareerCapital AI - Student Financial Intelligence</title>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CareerCapital AI - Student Financial Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; }
+
+    /* ── Root hidden until splash exits ── */
+    #root {
+      opacity: 0;
+      transition: opacity 0.65s cubic-bezier(0.4,0,0.2,1);
+      height: 100%;
+    }
+    #root.revealed { opacity: 1; overflow: auto; }
+
+    /* ══════════════════════════════════════════
+       SPLASH WRAPPER
+    ══════════════════════════════════════════ */
+    #cc-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: #020b18;
+    }
+
+    /* Exit: scale-up + fade */
+    #cc-splash.exit {
+      animation: splash-exit 0.65s cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+    @keyframes splash-exit {
+      0%   { opacity: 1; transform: scale(1);    }
+      100% { opacity: 0; transform: scale(1.05); pointer-events: none; }
+    }
+
+    /* ══════════════════════════════════════════
+       LAYER 1 — STAR FIELD
+    ══════════════════════════════════════════ */
+    #stars {
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at  4%  8%, rgba(180,210,255,0.7) 0%,transparent 100%),
+        radial-gradient(1px 1px at 11% 22%, rgba(160,200,255,0.5) 0%,transparent 100%),
+        radial-gradient(1px 1px at 19%  3%, rgba(200,225,255,0.6) 0%,transparent 100%),
+        radial-gradient(1px 1px at 27% 45%, rgba(175,210,255,0.5) 0%,transparent 100%),
+        radial-gradient(1px 1px at 34% 15%, rgba(210,230,255,0.6) 0%,transparent 100%),
+        radial-gradient(1px 1px at 41% 68%, rgba(190,218,255,0.4) 0%,transparent 100%),
+        radial-gradient(1px 1px at 48%  7%, rgba(215,232,255,0.65)0%,transparent 100%),
+        radial-gradient(1px 1px at 55% 33%, rgba(185,212,255,0.5) 0%,transparent 100%),
+        radial-gradient(1px 1px at 62% 79%, rgba(200,222,255,0.55)0%,transparent 100%),
+        radial-gradient(1px 1px at 69% 12%, rgba(218,233,255,0.60)0%,transparent 100%),
+        radial-gradient(1px 1px at 76% 55%, rgba(192,218,255,0.45)0%,transparent 100%),
+        radial-gradient(1px 1px at 83% 28%, rgba(208,228,255,0.55)0%,transparent 100%),
+        radial-gradient(1px 1px at 90%  4%, rgba(222,236,255,0.65)0%,transparent 100%),
+        radial-gradient(1px 1px at 96% 42%, rgba(198,220,255,0.50)0%,transparent 100%),
+        radial-gradient(1px 1px at  7% 62%, rgba(182,208,255,0.45)0%,transparent 100%),
+        radial-gradient(1px 1px at 15% 87%, rgba(198,222,255,0.50)0%,transparent 100%),
+        radial-gradient(1px 1px at 23% 73%, rgba(212,228,255,0.55)0%,transparent 100%),
+        radial-gradient(1px 1px at 31% 91%, rgba(192,216,255,0.50)0%,transparent 100%),
+        radial-gradient(1px 1px at 38% 52%, rgba(208,226,255,0.60)0%,transparent 100%),
+        radial-gradient(1px 1px at 52% 19%, rgba(188,214,255,0.50)0%,transparent 100%),
+        radial-gradient(1px 1px at 66% 38%, rgba(212,230,255,0.60)0%,transparent 100%),
+        radial-gradient(1px 1px at 80% 88%, rgba(188,212,255,0.50)0%,transparent 100%),
+        radial-gradient(1px 1px at 87% 72%, rgba(208,226,255,0.60)0%,transparent 100%),
+        radial-gradient(1.5px 1.5px at  2% 48%, rgba(0,200,255,0.38) 0%,transparent 100%),
+        radial-gradient(1.5px 1.5px at 30% 30%, rgba(0,200,255,0.32) 0%,transparent 100%),
+        radial-gradient(1.5px 1.5px at 70% 20%, rgba(0,200,255,0.38) 0%,transparent 100%),
+        radial-gradient(1.5px 1.5px at 50% 50%, rgba(80,170,255,0.28)0%,transparent 100%);
+      background-size: 100% 100%;
+      opacity: 0;
+      animation: fade-in-layer 1.2s ease 0.3s forwards;
+    }
+
+    /* ══════════════════════════════════════════
+       LAYER 2 — AURORA TILE GRID (2 × 3)
+    ══════════════════════════════════════════ */
+    #aurora-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr 1fr;
+      opacity: 0;
+      animation: fade-in-layer 1.6s ease 0.1s forwards;
+    }
+    @keyframes fade-in-layer { to { opacity: 1; } }
+
+    .a-tile {
+      position: relative;
+      overflow: hidden;
+    }
+    .a-tile::before {
+      content: '';
+      position: absolute;
+      inset: -70%;
+      background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        rgba(26,107,255,0.18) 60deg,
+        transparent 120deg,
+        rgba(0,212,200,0.12) 200deg,
+        transparent 260deg,
+        rgba(26,107,255,0.14) 320deg,
+        transparent 360deg
+      );
+      animation: tile-cw var(--td, 18s) linear var(--tdo, 0s) infinite;
+    }
+    .a-tile::after {
+      content: '';
+      position: absolute;
+      inset: -70%;
+      background: conic-gradient(
+        from 90deg,
+        transparent 0deg,
+        rgba(0,200,180,0.10) 80deg,
+        transparent 160deg,
+        rgba(26,90,255,0.12) 240deg,
+        transparent 360deg
+      );
+      opacity: 0.70;
+      animation: tile-ccw var(--td2, 24s) linear var(--tdo2, 0s) infinite;
+    }
+    @keyframes tile-cw  { to { transform: rotate(360deg);  } }
+    @keyframes tile-ccw { to { transform: rotate(-360deg); } }
+
+    .a-tile:nth-child(1) { --td:18s; --tdo:0s;   --td2:26s; --tdo2:-4s;  }
+    .a-tile:nth-child(2) { --td:22s; --tdo:-6s;  --td2:20s; --tdo2:-2s;  }
+    .a-tile:nth-child(3) { --td:16s; --tdo:-11s; --td2:28s; --tdo2:-8s;  }
+    .a-tile:nth-child(4) { --td:20s; --tdo:-3s;  --td2:22s; --tdo2:-13s; }
+    .a-tile:nth-child(5) { --td:25s; --tdo:-8s;  --td2:18s; --tdo2:-5s;  }
+    .a-tile:nth-child(6) { --td:15s; --tdo:-14s; --td2:30s; --tdo2:-10s; }
+
+    /* ══════════════════════════════════════════
+       LAYER 3 — DIAGONAL LIGHT SHAFTS
+    ══════════════════════════════════════════ */
+    #shafts {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      animation: fade-in-layer 1s ease 0.6s forwards;
+    }
+    .shaft {
+      position: absolute;
+      top: -40%;
+      width: 1.5px;
+      height: 180%;
+      background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(100,170,255,0.30) 30%,
+        rgba(0,210,200,0.22) 65%,
+        transparent 100%
+      );
+      transform: rotate(-40deg);
+      transform-origin: top center;
+      animation: shaft-pulse var(--sp, 3s) ease-in-out var(--sd, 0s) infinite alternate;
+    }
+    @keyframes shaft-pulse {
+      from { opacity: 0.25; }
+      to   { opacity: 0.75; }
+    }
+    .shaft:nth-child(1) { left:10%; --sp:3.1s; --sd:0s;   }
+    .shaft:nth-child(2) { left:27%; --sp:2.7s; --sd:0.7s; }
+    .shaft:nth-child(3) { left:48%; --sp:3.5s; --sd:1.2s; }
+    .shaft:nth-child(4) { left:66%; --sp:2.9s; --sd:0.4s; }
+    .shaft:nth-child(5) { left:83%; --sp:3.3s; --sd:1.6s; }
+
+    /* ══════════════════════════════════════════
+       LAYER 4 — RADIAL VIGNETTE (depth)
+    ══════════════════════════════════════════ */
+    #vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        ellipse 70% 60% at 50% 50%,
+        transparent 0%,
+        rgba(2,11,24,0.55) 70%,
+        rgba(2,11,24,0.90) 100%
+      );
+      pointer-events: none;
+    }
+
+    /* ══════════════════════════════════════════
+       CENTER CONTENT
+    ══════════════════════════════════════════ */
+    #splash-center {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    /* ── Logo mark ── */
+    #logo-mark {
+      width: 88px;
+      height: 88px;
+      border-radius: 24px;
+      /* Strong visible gradient — blue to teal */
+      background: linear-gradient(135deg, #1a5aff 0%, #007acc 50%, #00c8b4 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      /* scale 0.8 → 1.0, starts immediately */
+      opacity: 0;
+      transform: scale(0.80);
+      animation:
+        logo-in    0.85s cubic-bezier(0.34,1.56,0.64,1) 0.05s forwards,
+        logo-pulse 2.6s  ease-in-out                    0.95s infinite;
+    }
+
+    @keyframes logo-in {
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes logo-pulse {
+      0%,100% {
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,0.12),
+          0 0 30px 8px  rgba(26,100,255,0.60),
+          0 0 75px 22px rgba(0,200,200,0.30),
+          0 0 130px 45px rgba(26,60,255,0.18);
+      }
+      50% {
+        box-shadow:
+          0 0 0 1px rgba(255,255,255,0.18),
+          0 0 45px 14px rgba(26,100,255,0.80),
+          0 0 110px 38px rgba(0,200,200,0.45),
+          0 0 200px 70px rgba(26,60,255,0.25);
+      }
+    }
+
+    /* CC SVG icon inside logo */
+    #logo-mark svg {
+      width: 48px;
+      height: 48px;
+      filter: drop-shadow(0 1px 4px rgba(0,0,0,0.30));
+    }
+
+    /* Outer glow ring that pulses outward */
+    #logo-ring {
+      position: absolute;
+      width: 88px;
+      height: 88px;
+      border-radius: 24px;
+      border: 1.5px solid rgba(0,210,200,0.55);
+      animation: ring-expand 2.2s ease-out 0.9s infinite;
+      pointer-events: none;
+    }
+    @keyframes ring-expand {
+      0%   { transform: scale(1);    opacity: 0.70; }
+      100% { transform: scale(1.85); opacity: 0;    }
+    }
+
+    /* ── App name ── */
+    #app-name {
+      margin-top: 28px;
+      font-size: clamp(1.35rem, 3vw, 1.75rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: #fff;
+      text-shadow: 0 2px 24px rgba(26,100,255,0.40);
+
+      opacity: 0;
+      transform: translateY(12px);
+      /* appears 0.65s after logo-in finishes */
+      animation: text-rise 0.60s cubic-bezier(0.22,1,0.36,1) 0.80s forwards;
+    }
+    @keyframes text-rise {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Tagline ── */
+    #tagline {
+      margin-top: 8px;
+      font-size: clamp(0.65rem, 1.5vw, 0.78rem);
+      font-weight: 500;
+      letter-spacing: 0.30em;
+      text-transform: uppercase;
+      color: rgba(0,212,200,0.90);
+
+      opacity: 0;
+      transform: translateY(10px);
+      animation: text-rise 0.55s cubic-bezier(0.22,1,0.36,1) 1.10s forwards;
+    }
+
+    /* ── Progress bar ── */
+    #progress-wrap {
+      margin-top: 44px;
+      width: clamp(160px, 30vw, 240px);
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.09);
+      overflow: hidden;
+
+      opacity: 0;
+      animation: text-rise 0.45s ease 1.30s forwards;
+    }
+    #progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #1a64ff 0%, #00c8b8 55%, #00e5d4 100%);
+      /* bar fills from 1.4 s → 3.4 s (2 s duration), exit at 3.9 s */
+      animation: bar-fill 2.30s cubic-bezier(0.4,0,0.2,1) 1.40s forwards;
+      box-shadow: 0 0 8px 2px rgba(0,200,200,0.50);
+    }
+    @keyframes bar-fill {
+      0%   { width: 0%;   }
+      55%  { width: 68%;  }
+      82%  { width: 87%;  }
+      100% { width: 100%; }
+    }
+
+  </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+
+  <!-- ══════════════════════════════════════════
+       SPLASH SCREEN
+  ══════════════════════════════════════════ -->
+  <div id="cc-splash" aria-label="Loading CareerCapital" role="status">
+
+    <!-- Star field -->
+    <div id="stars"></div>
+
+    <!-- Aurora tile grid -->
+    <div id="aurora-grid">
+      <div class="a-tile"></div>
+      <div class="a-tile"></div>
+      <div class="a-tile"></div>
+      <div class="a-tile"></div>
+      <div class="a-tile"></div>
+      <div class="a-tile"></div>
+    </div>
+
+    <!-- Light shafts -->
+    <div id="shafts">
+      <div class="shaft"></div>
+      <div class="shaft"></div>
+      <div class="shaft"></div>
+      <div class="shaft"></div>
+      <div class="shaft"></div>
+    </div>
+
+    <!-- Depth vignette -->
+    <div id="vignette"></div>
+
+    <!-- ── Center: logo + text + bar ── -->
+    <div id="splash-center">
+
+      <!-- Logo mark with glow ring -->
+      <div style="position:relative; display:flex; align-items:center; justify-content:center;">
+        <div id="logo-ring"></div>
+        <div id="logo-mark">
+          <!-- CC monogram SVG -->
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Left C -->
+            <path d="M22 14C16.477 14 12 18.477 12 24C12 29.523 16.477 34 22 34H24V30H22C18.686 30 16 27.314 16 24C16 20.686 18.686 18 22 18H24V14H22Z" fill="white"/>
+            <!-- Right C -->
+            <path d="M30 14C24.477 14 20 18.477 20 24C20 29.523 24.477 34 30 34H32V30H30C26.686 30 24 27.314 24 24C24 20.686 26.686 18 30 18H32V14H30Z" fill="rgba(255,255,255,0.70)"/>
+            <!-- Trend arrow -->
+            <polyline points="10,40 18,33 25,37 38,26" stroke="rgba(255,255,255,0.50)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <div id="app-name">CareerCapital</div>
+      <div id="tagline">AI · Finance · Career</div>
+
+      <!-- Progress bar -->
+      <div id="progress-wrap">
+        <div id="progress-fill"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- React app -->
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+
+  <!-- Splash dismiss: exit at 3.9 s (bar finishes at ~3.65 s) -->
+  <script>
+    (function () {
+      var splash = document.getElementById('cc-splash');
+      var root   = document.getElementById('root');
+
+      setTimeout(function () {
+        splash.classList.add('exit');
+        setTimeout(function () {
+          splash.style.display = 'none';
+          root.classList.add('revealed');
+        }, 670);
+      }, 3900);
+    })();
+  </script>
+
 </body>
 </html>

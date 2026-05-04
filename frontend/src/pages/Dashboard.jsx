@@ -130,28 +130,31 @@ export default function Dashboard() {
 
         <div className="grid gap-6 lg:grid-cols-2 mb-8">
           {/* 2. Current Stage Indicator */}
-          <Card hover={false} className="bg-slate-900 border-slate-800 text-white dark:bg-slate-950 dark:border-slate-800">
+          <Card hover={false} className="border-slate-200 dark:border-slate-800">
             <div className="flex flex-col h-full justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Current Stage</p>
+                <p className="text-xs uppercase tracking-[0.16em] font-semibold text-slate-400">Current Stage</p>
                 <div className="mt-4 flex items-start gap-4">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-teal-500/30 bg-teal-500/10 text-2xl font-bold text-teal-400">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-teal-500/30 bg-teal-500/10 text-2xl font-bold text-teal-600 dark:text-teal-400">
                     {currentStage.number}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-white">{currentStage.label}</h2>
-                    <p className="mt-1 text-sm text-slate-400">{currentStage.detail}</p>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{currentStage.label}</h2>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{currentStage.detail}</p>
                   </div>
                 </div>
               </div>
-              <Link to={currentStage.href} className="mt-6 block">
-                <Button className="w-full justify-between bg-teal-500 hover:bg-teal-600 text-slate-950">
-                  <span>Continue {currentStage.label}</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
+              <Link
+                to={currentStage.href}
+                className="mt-6 flex w-full items-center justify-between rounded-full px-5 py-3 text-sm font-semibold transition hover:opacity-90 active:scale-[0.98]"
+                style={{ background: '#0d9488', color: '#ffffff' }}
+              >
+                <span>Continue {currentStage.label}</span>
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </Card>
+
 
           {/* 3. Profile Completion Bar */}
           <Card hover={false}>
